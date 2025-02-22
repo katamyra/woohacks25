@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# CORS bucket setup
+src/app/recommendations/CORS_bucket_config.json
