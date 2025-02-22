@@ -101,7 +101,7 @@ export default function Preferences() {
             <div className="card-body">
               <h2 className="card-title text-gray-100">Basic Needs</h2>
               <div className="form-control">
-                {['food', 'shelter', 'medical', 'supplies'].map((need) => (
+                {['food', 'shelter', 'medical', 'miscellaneous supplies'].map((need) => (
                   <label key={need} className="label cursor-pointer">
                     <span className="label-text text-gray-300 capitalize">{need}</span>
                     <input
@@ -202,6 +202,8 @@ export default function Preferences() {
           </button>
           {errorMessage && <div className="text-red-500 mt-4">{errorMessage}</div>}
         </div>
+
+        {/* ChatInterface removed (now rendered globally) */}
       </div>
     </div>
   );

@@ -2,8 +2,11 @@
   "name": "woohacks25",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=16.8.0"
+  },
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -13,10 +16,16 @@
     "@react-google-maps/api": "^2.20.6",
     "axios": "^1.7.9",
     "firebase": "^11.3.1",
+    "@google/generative-ai": "latest",
+    "@react-google-maps/api": "latest",
+    "axios": "latest",
+    "firebase": "latest",
+    "firebase-admin": "latest",
     "google-map-react": "^2.2.1",
-    "next": "15.1.7",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "next": "^14.0.0",
+    "node": "^18.20.7",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
