@@ -1,9 +1,53 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MapOverlay from "./map_overlay";
+import { useAuth } from '@/context/AuthContext';
+import { firestoreService } from '@/firebase/services/firestore';
+import { fetchRecommendations } from '@/utils/fetchRecommendations';
 
 const RecommendationsPage = () => {
   const [galleryExpanded, setGalleryExpanded] = useState(false);
+  const [review, setReview] = useState('');
+  const [address, setAddress] = useState('');
+  const [lng, setLng] = useState(0);
+  const [lat, setLat] = useState(0);
+  const [recommendations, setRecommendations] = useState([]);
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user) {
+        try {
+          const userData = await firestoreService.getUserData(user.uid);
+          console.log('User Data:', userData);
+          setReview(userData.review);
+          setAddress(userData.address.formatted);
+          setLng(userData.address.coordinates.lng);
+          setLat(userData.address.coordinates.lat);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchInitialRecommendations = async () => {
+      if (review && address && lng && lat) {
+        try {
+          const data = await fetchRecommendations(review, address, lng, lat);
+          setRecommendations(data);
+        } catch (error) {
+          console.error('Error fetching recommendations:', error);
+        }
+      }
+    };
+
+    fetchInitialRecommendations();
+  }, [review, address, lng, lat]);
+
   const toggleGallery = () => setGalleryExpanded(!galleryExpanded);
 
   // Main container
@@ -18,7 +62,7 @@ const RecommendationsPage = () => {
   // Style the gallery section
   const galleryStyle = {
     flex: galleryExpanded ? 1 : 0.3,
-    backgroundColor: "#f4f4f4",
+    backgroundColor: "#000000",
     padding: "20px",
     overflowY: "auto",
     transition: "flex 0.3s ease",
@@ -43,7 +87,13 @@ const RecommendationsPage = () => {
         </button>
         <h2>Recommended Locations</h2>
         <div>
-          <p>No locations available yet.</p>
+          {recommendations.length > 0 ? (
+            recommendations.map((place, index) => (
+              <p key={index}>{place.place} - Lat: {place.lat}, Lng: {place.lng}</p>
+            ))
+          ) : (
+            <p>No recommendations available yet.</p>
+          )}
         </div>
       </div>
 
