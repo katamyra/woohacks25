@@ -82,7 +82,7 @@ export default function Review() {
         lastUpdated: new Date().toISOString()
       });
       
-      router.push('/next-step');
+      router.push('/recommendations');
     } catch (error) {
       setError('Failed to save review: ' + error.message);
     } finally {
