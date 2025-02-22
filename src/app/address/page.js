@@ -1,6 +1,5 @@
 "use client"
 import { useState } from 'react';
-import { Button, TextField, Typography, Box, Paper } from '@mui/material';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 
 export default function AddressPage() {
@@ -25,27 +24,21 @@ export default function AddressPage() {
     };
 
     return (
-        <Box sx={{ display: 'flex', height: '100vh' }}>
-            <Paper elevation={3} sx={{ width: '30%', padding: 3, boxSizing: 'border-box' }}>
-                <Typography variant="h4" component="h2" gutterBottom>
-                    Enter Address
-                </Typography>
-                <TextField
-                    label="Address"
-                    variant="outlined"
-                    fullWidth
+        <div className="flex h-screen bg-gray-100">
+            <div className="w-1/3 p-4 bg-black text-white shadow-lg">
+                <h2 className="text-2xl font-bold mb-4">Enter Address</h2>
+                <input
+                    type="text"
+                    placeholder="Address"
+                    className="input input-bordered w-full mb-4"
                     value={address}
                     onChange={handleAddressChange}
-                    InputProps={{
-                        style: { color: 'black' }, // Keep text color black
-                    }}
-                    sx={{ marginBottom: 2 }}
                 />
-                <Button variant="contained" color="primary" onClick={handleApply}>
+                <button className="btn btn-primary w-full" onClick={handleApply}>
                     Apply
-                </Button>
-            </Paper>
-            <Box sx={{ flexGrow: 1, borderRadius: 2, overflow: 'hidden' }}>
+                </button>
+            </div>
+            <div className="flex-grow">
                 <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
                     <GoogleMap
                         mapContainerStyle={{ width: '100%', height: '100%' }}
@@ -55,7 +48,7 @@ export default function AddressPage() {
                         <Marker position={location} />
                     </GoogleMap>
                 </LoadScript>
-            </Box>
-        </Box>
+            </div>
+        </div>
     );
 }
