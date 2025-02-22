@@ -8,14 +8,104 @@ export const fetchRecommendations = async (review, address, lng, lat) => {
     Note: An example of this would be including stores providing diapers and baby formula if it is indicated that the user is accompanied by infants.
     Note: In addition to personalized recommendations, include generally-applicable amenities as well, such as shelters, food sources, water sources, medical facilities,
     etc.
+    Note: Include amenities regardless of their "Open now" status.
 
-    Longitude: ${lng}, Latitude: ${lat}.
+    Following the above guidelines, also include a minimum of 3 amenities of each of the following categories:
+    "Healthcare", "shelter", "food/water".
+    According to the amenities you think should also be included based on the user's background, add additional categories as needed.
+
+    Additionally, include only amenities that are 
+
+    User location: Longitude: ${lng}, Latitude: ${lat}.
     
     Summary of user(s):
     ${review}
-    
-    Query-building specifications:
-    
+
+    Google Maps Platform "Places API" query-building specifications:
+    WARNING: Choose from these types:
+        accounting
+        airport
+        atm
+        bakery
+        bank
+        bicycle_store
+        book_store
+        bus_station
+        cafe
+        car_dealer
+        car_rental
+        car_repair
+        car_wash
+        casino
+        cemetery
+        church
+        city_hall
+        clothing_store
+        convenience_store
+        courthouse
+        department_store
+        doctor
+        drugstore
+        electrician
+        electronics_store
+        embassy
+        fire_station
+        funeral_home
+        furniture_store
+        gas_station
+        hair_care
+        hardware_store
+        hindu_temple
+        home_goods_store
+        hospital
+        insurance_agency
+        jewelry_store
+        laundry
+        lawyer
+        light_rail_station
+        local_government_office
+        locksmith
+        lodging
+        meal_delivery
+        meal_takeaway
+        mosque
+        moving_company
+        park
+        parking
+        pet_store
+        pharmacy
+        physiotherapist
+        plumber
+        police
+        post_office
+        primary_school
+        real_estate_agency
+        restaurant
+        rv_park
+        school
+        secondary_school
+        shoe_store
+        shopping_mall
+        stadium
+        storage
+        store
+        subway_station
+        supermarket
+        synagogue
+        taxi_stand
+        train_station
+        transit_station
+        travel_agency
+        university
+        veterinary_care
+    WARNING: Use "radius", DO NOT USE "rankby=distance"
+    WARNING: You can only query one "type={PLACETYPE}" at once; for multiple PLACETYPEs, generate multiple queries URL's
+    WARNING: For multiple keywords, put "+OR+" in between each keyword set instead of "|"; example: &keyword=urgent+care+OR+medical+clinic+OR+homeless+shelter+OR+food+bank
+    FORMAT:
+    ==================
+    https://maps.googleapis.com/maps/api/place/nearbysearch/json
+    ?key=realAPIKey&location={LATITUDE},{LONGITUDE}&radius={RADIUS_IN_METERS}&type={PLACE_TYPE}&keyword={SEARCH_KEYWORD}
+    ==================
     `;
     console.log('Sending review text:', reviewText);
 
@@ -31,14 +121,14 @@ export const fetchRecommendations = async (review, address, lng, lat) => {
         console.log('Response status:', response.status);
 
         if (!response.ok) {
-            throw new Error('Failed to fetch recommendations');
+            throw new Error('Failed to fetch Places API query');
         }
 
         const data = await response.json();
         console.log('Received data:', data);
         return data;
     } catch (error) {
-        console.error('Error fetching recommendations:', error);
+        console.error('Error fetching Places API query:', error);
         throw error;
     }
 }; 
