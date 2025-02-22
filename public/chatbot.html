@@ -1,6 +1,12 @@
-<!DOCTYPE html>
 <html>
 <head>
+  <style>
+    /* Remove body margin and set a transparent or dark background */
+    body {
+      margin: 0;
+      background-color: transparent;
+    }
+  </style>
   <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
 </head>
 <body>
@@ -9,48 +15,9 @@
     agent-id="72c259c9-07e9-4cc7-931d-31a73d20178c"
     language-code="en"
     chat-title="Emergency Assistant"
-    chat-open="true"
   ></df-messenger>
   <script>
-    window.addEventListener('df-messenger-message-received', function (event) {
-      console.log('Dialogflow message received:', event);
-
-      // Check for user input (query) and responses (fulfillment)
-      if (event.detail) {
-        console.log('Event detail:', event.detail);
-        if (event.detail.rawInput) {
-          const userMessage = event.detail.rawInput;
-          console.log('User input:', userMessage);
-
-          window.parent.postMessage({
-            type: 'CHAT_MESSAGE',
-            text: userMessage,
-            source: 'user' // Add source for clarity
-          }, '*');
-        }
-
-        if (event.detail.responses && event.detail.responses.length > 0) {
-          // Handle bot responses (if needed)
-          event.detail.responses.forEach(response => {
-            if (response.text && response.text.text && response.text.text.length > 0) {
-              const botMessage = response.text.text[0];
-              console.log('Bot response:', botMessage);
-
-              window.parent.postMessage({
-                type: 'CHAT_MESSAGE',
-                text: botMessage,
-                source: 'bot' // Add source for clarity
-              }, '*');
-            }
-          });
-        }
-      }
-    });
-
-    // Log when the Dialogflow Messenger is fully loaded
-    window.addEventListener('df-messenger-loaded', function (event) {
-      console.log('Dialogflow Messenger loaded');
-    });
+    // ...
   </script>
 </body>
-</html> 
+</html>
