@@ -1,7 +1,6 @@
 'use client';
 
-import { db } from '../firebase/config';
-import { collection, addDoc } from 'firebase/firestore';
+import { firestoreService } from '../firebase/services/firestore';
 import { useState } from 'react';
 
 export default function Home() {
@@ -9,13 +8,8 @@ export default function Home() {
 
   const testFirebaseConnection = async () => {
     try {
-      // Try to add a test document to Firestore
-      const docRef = await addDoc(collection(db, "test_collection"), {
-        test: "Hello Firebase!",
-        timestamp: new Date()
-      });
-      
-      setTestResult(`✅ Firebase is connected! Test document created with ID: ${docRef.id}`);
+      const result = await firestoreService.testConnection();
+      setTestResult(`✅ Firebase is connected! Test document created with ID: ${result.docId}`);
     } catch (error) {
       setTestResult(`❌ Firebase connection failed: ${error.message}`);
       console.error("Firebase test error:", error);
