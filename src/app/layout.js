@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from '@/context/AuthContext';
+import ChatInterface from '@/components/ChatInterface';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <div className="min-h-screen bg-gray-900 text-gray-100">
             {children}
+            <ChatInterface defaultExpanded={true} />
           </div>
         </AuthProvider>
       </body>

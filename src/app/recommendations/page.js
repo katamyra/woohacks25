@@ -124,13 +124,11 @@ const RecommendationsPage = () => {
             <p>No recommendations available yet.</p>
           )}
         </div>
-      </div>
-
       {!galleryExpanded && (
         <div style={mapStyle}>
           <MapOverlay landsatData={landsatData} recommendations={recommendations} />
         </div>
-      )}
+      )
     </div>
   );
 };
