@@ -28,6 +28,13 @@ export default function Home() {
   }, [user]);
 
   useEffect(() => {
+    if (user && !redirecting) {
+      setCountdown(5);
+      setRedirecting(true);
+    }
+  }, [user, redirecting]);
+
+  useEffect(() => {
     if (countdown > 0) {
       const timer = setInterval(() => {
         setCountdown((prev) => prev - 1);
