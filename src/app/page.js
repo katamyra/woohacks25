@@ -34,7 +34,7 @@ export default function Home() {
       }, 1000);
       return () => clearInterval(timer);
     } else if (redirecting) {
-      window.location.href = '/preferences';
+      window.location.href = '/address';
     }
   }, [countdown, redirecting]);
 
