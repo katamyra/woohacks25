@@ -1,12 +1,12 @@
 import { db } from '../config';
-import { collection, addDoc, getDocs, query, where, DocumentData } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, DocumentData, doc, setDoc } from 'firebase/firestore';
 
 class FirestoreService {
   // Collection references
   collections = {
     tests: 'test_collection',
     users: 'users',
-    // Add more collections as needed
+    userData: 'userData'
   };
 
   // Test connection
@@ -38,6 +38,28 @@ class FirestoreService {
         id: doc.id,
         ...doc.data()
       }));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getUserData(uid) {
+    try {
+      const querySnapshot = await getDocs(query(
+        collection(db, this.collections.users),
+        where('uid', '==', uid)
+      ));
+      return querySnapshot.docs[0]?.data();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async setUser(uid, userData) {
+    try {
+      const userRef = doc(db, this.collections.users, uid);
+      await setDoc(userRef, userData, { merge: true });
+      return userData;
     } catch (error) {
       throw error;
     }
