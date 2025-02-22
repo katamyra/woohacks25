@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useCallback } from "react";
-import { GoogleMap, useJsApiLoader } from "@react-google-maps/api";
+import React, {useState, useCallback, useEffect, useRef} from "react";
+import {GoogleMap, useJsApiLoader} from "@react-google-maps/api";
 
 // DEFINE PEI SCORE MAP COLORS HERE
 function getColor(value) {
@@ -22,8 +22,10 @@ function getColor(value) {
 export default function MapOverlay() {
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
+  const [hoverScore, setHoverScore] = useState(null);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
 
-  const { isLoaded } = useJsApiLoader({
+  const {isLoaded} = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   });
@@ -40,6 +42,24 @@ export default function MapOverlay() {
     setMap(mapInstance);
     mapInstance.data.setMap(null);
   }, []);
+
+  useEffect(() => {
+    if (map && window.google) {
+      // Detect when mouse is hovering over a polygon; get PEI score
+      map.data.addListener("mouseover", (e) => {
+        const score = e.feature.getProperty("PEI_score");
+        if (score !== undefined && score !== null) {
+          setHoverScore(parseFloat(score));
+        } else {
+          setHoverScore(null);
+        }
+      });
+      map.data.addListener("mouseout", () => {
+        setHoverScore(null);
+      });
+    }
+  }, [map]);
+
 
   // Helper function to fetch and parse PEI score CSV
   async function fetchCsvAndParse(url) {
@@ -118,7 +138,7 @@ export default function MapOverlay() {
         const color = getColor(score);
         return {
           fillColor: color,
-          fillOpacity: 0.7,
+          fillOpacity: 0.25,
           strokeColor: color,
           strokeWeight: 1,
         };
@@ -133,28 +153,69 @@ export default function MapOverlay() {
 
   if (!isLoaded) return <p>Loading Map...</p>;
 
-  // Style 'toggle overlay' button
+  // Style for both "Show/Hide Walkability" button and "PEI Score" display
+  const commonStyle = {
+    background: isButtonHovered ? "rgb(235, 235, 235)" : "#fff",
+    boxShadow: "0 0px 2px rgba(24, 24, 24, 0.3)",
+    color: "rgb(86, 86, 86)",
+    fontFamily: "Roboto, Arial, sans-serif",
+    fontSize: "17px",
+    lineHeight: "36px",
+    boxSizing: "border-box",
+    height: "40px",
+    padding: "0 12px",
+    display: "flex",
+    alignItems: "center",
+    textAlign: "center",
+    width: "152px",
+  };
+
+  // Style the walkability score display
+  const scoreDisplayStyle = {
+    ...commonStyle,
+    borderRadius: "0 2px 2px 0",
+    background: "#4285F4",
+    color: "#fff",
+    cursor: "default",
+  };
+
   return (
-    <div style={{ flex: 1, position: "relative" }}>
-      <button
-        onClick={toggleGeoJson}
+    <div style={{flex: 1, position: "relative"}}>
+      <div
         style={{
           position: "absolute",
           top: "10px",
-          left: "180px",
+          left: "168px",
           zIndex: 999,
-          padding: "8px 12px",
+          display: "flex",
+          alignItems: "center",
         }}
+      >
+
+      <button
+        onClick={toggleGeoJson}
+        style={{...commonStyle, cursor: "pointer"}}
+        onMouseEnter={() => setIsButtonHovered(true)}
+        onMouseLeave={() => setIsButtonHovered(false)}
       >
         {overlayVisible ? "Hide Walkability" : "Show Walkability"}
       </button>
 
+      {overlayVisible && (
+        <div style={scoreDisplayStyle}>
+          {hoverScore !== null
+            ? `Walkability: ${hoverScore.toFixed(2)}`
+            : "Walkability: ____"}
+        </div>
+      )}
+      </div>
+
       {/* map default view settings */}
       <GoogleMap
         onLoad={onMapLoad}
-        center={{ lat: 37.7749, lng: -122.4194 }}
+        center={{lat: 37.7749, lng: -122.4194}}
         zoom={10}
-        mapContainerStyle={{ width: "100%", height: "100%" }}
+        mapContainerStyle={{width: "100%", height: "100%"}}
       >
         {/* TODO: include overlay of pins on recommended locations */}
       </GoogleMap>
