@@ -28,6 +28,32 @@ export default function AddressPage() {
         });
     };
 
+    const handleUseCurrentLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    setLocation({ lat: latitude, lng: longitude });
+
+                    const geocoder = new window.google.maps.Geocoder();
+                    const latlng = { lat: latitude, lng: longitude };
+                    geocoder.geocode({ location: latlng }, (results, status) => {
+                        if (status === 'OK' && results[0]) {
+                            setAddress(results[0].formatted_address);
+                        } else {
+                            alert('Geocode was not successful for the following reason: ' + status);
+                        }
+                    });
+                },
+                () => {
+                    alert('Unable to retrieve your location');
+                }
+            );
+        } else {
+            alert('Geolocation is not supported by this browser.');
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!user) {
@@ -60,6 +86,13 @@ export default function AddressPage() {
                     onClick={handleApply}
                 >
                     Apply
+                </button>
+                <button
+                    className="btn w-full mb-4"
+                    style={{ backgroundColor: '#FF3E30', color: 'white' }}
+                    onClick={handleUseCurrentLocation}
+                >
+                    Use My Current Location
                 </button>
                 <button
                     className="btn w-full"
