@@ -3,8 +3,12 @@
 import { useState } from 'react';
 import { authService } from '@/firebase/services/auth';
 import { firestoreService } from '@/firebase/services/firestore';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function Preferences() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [transportation, setTransportation] = useState('walking');
   const [fitnessLevel, setFitnessLevel] = useState('regular');
   const [needs, setNeeds] = useState({
@@ -56,7 +60,6 @@ export default function Preferences() {
   };
 
   const handleSubmit = async () => {
-    const user = authService.getCurrentUser();
     if (!user) {
       setErrorMessage('You must be logged in to save preferences');
       return;
@@ -77,7 +80,8 @@ export default function Preferences() {
           communicationPrefs
         }
       });
-      // Optionally add redirect or success message here
+      // Redirect to review page after successful save
+      router.push('/review');
     } catch (error) {
       setErrorMessage('Failed to save preferences: ' + error.message);
       console.error('Submission error:', error);
@@ -87,7 +91,7 @@ export default function Preferences() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen">
       <div className="container mx-auto p-4">
         <h1 className="text-4xl text-center mb-8 text-white">Emergency Assistance Preferences</h1>
 
