@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { firestoreService } from '@/firebase/services/firestore';
 import { generateContent } from '@/services/gemini';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function Review() {
   const { user, loading } = useAuth();
@@ -13,6 +14,8 @@ export default function Review() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
   const [additionalInfo, setAdditionalInfo] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -60,6 +63,47 @@ export default function Review() {
       setIsGenerating(false);
     }
   };
+
+  const handleSaveReview = async () => {
+    if (!user) {
+      setError('You must be logged in to save review');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const fullReview = `${aiReview}\n\nAdditional Notes: ${additionalInfo}`;
+      
+      await firestoreService.setUser(user.uid, {
+        review: fullReview,
+        preferences: userData?.preferences,
+        lastUpdated: new Date().toISOString()
+      });
+      
+      router.push('/next-step');
+    } catch (error) {
+      setError('Failed to save review: ' + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAdditionalInfoChange = (e) => {
+    setAdditionalInfo(e.target.value);
+  };
+
+  useEffect(() => {
+    // Debounce the AI review generation
+    const timeoutId = setTimeout(() => {
+      if (userData?.preferences && additionalInfo) {
+        generateReview(userData.preferences);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [additionalInfo, userData?.preferences]); // Add dependencies here
 
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
@@ -110,17 +154,16 @@ export default function Review() {
                   className="textarea textarea-bordered w-full h-32 bg-gray-700 text-white"
                   placeholder="Add any additional information you'd like to include in your review..."
                   value={additionalInfo}
-                  onChange={(e) => {
-                    setAdditionalInfo(e.target.value);
-                    if (userData?.preferences) {
-                      generateReview(userData.preferences);
-                    }
-                  }}
+                  onChange={handleAdditionalInfoChange}
                 />
                 <div className="flex justify-end mt-4">
-                  <Link href="/next-page" className="btn btn-primary">
-                    Next
-                  </Link>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={handleSaveReview}
+                    disabled={isSubmitting || !aiReview}
+                  >
+                    {isSubmitting ? 'Saving...' : 'Save & Continue'}
+                  </button>
                 </div>
               </div>
             </div>
