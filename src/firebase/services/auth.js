@@ -42,6 +42,10 @@ class AuthService {
   getCurrentUser() {
     return auth.currentUser;
   }
+
+  onAuthStateChanged(callback) {
+    return auth.onAuthStateChanged(callback);
+  }
 }
 
 export const authService = new AuthService(); 
