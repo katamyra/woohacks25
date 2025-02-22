@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <div className="min-h-screen bg-gray-900 text-gray-100">
             {children}
-            <ChatInterface defaultExpanded={true} />
+            <ChatInterface />
           </div>
         </AuthProvider>
       </body>
