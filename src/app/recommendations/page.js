@@ -79,30 +79,33 @@ const RecommendationsPage = () => {
   };
 
   return (
-    <div style={containerStyle}>
-      {/* Recommended gallery section */}
-      <div style={galleryStyle}>
-        <button onClick={toggleGallery} style={{ marginBottom: "10px" }}>
-          {galleryExpanded ? "Collapse Gallery" : "Expand Gallery"}
-        </button>
-        <h2>Recommended Locations</h2>
-        <div>
-          {recommendations.length > 0 ? (
-            recommendations.map((place, index) => (
-              <p key={index}>{place.place} - Lat: {place.lat}, Lng: {place.lng}</p>
-            ))
-          ) : (
-            <p>No recommendations available yet.</p>
-          )}
+    <div className="min-h-screen bg-gray-900 text-white p-8">
+      <h1 className="text-4xl mb-8">Emergency Medical Recommendations</h1>
+      <div style={containerStyle}>
+        {/* Recommended gallery section */}
+        <div style={galleryStyle}>
+          <button onClick={toggleGallery} style={{ marginBottom: "10px" }}>
+            {galleryExpanded ? "Collapse Gallery" : "Expand Gallery"}
+          </button>
+          <h2>Recommended Locations</h2>
+          <div>
+            {recommendations.length > 0 ? (
+              recommendations.map((place, index) => (
+                <p key={index}>{place.place} - Lat: {place.lat}, Lng: {place.lng}</p>
+              ))
+            ) : (
+              <p>No recommendations available yet.</p>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Map section */}
-      {!galleryExpanded && (
-        <div style={mapStyle}>
-          <MapOverlay />
-        </div>
-      )}
+        {/* Map section */}
+        {!galleryExpanded && (
+          <div style={mapStyle}>
+            <MapOverlay />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
