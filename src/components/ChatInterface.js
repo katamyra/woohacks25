@@ -1,94 +1,90 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { authService } from '@/firebase/services/auth';
-import { firestoreService } from '@/firebase/services/firestore';
 
-// Persistent container outside component
-let chatContainer;
-
-export default function ChatInterface({ defaultExpanded = false }) {
+export default function ChatInterface() {
   const router = useRouter();
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-  const [container, setContainer] = useState(null);
+  // State for storing messages and the current user input
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
 
-  useEffect(() => {
-    if (!chatContainer) {
-      chatContainer = document.createElement('div');
-      document.body.appendChild(chatContainer);
-    }
-    setContainer(chatContainer);
+  // Function to send a message
+  const sendMessage = () => {
+    const trimmedInput = input.trim();
+    if (!trimmedInput) return;
 
-    return () => {
-      // Don't remove container - keep it mounted between page changes
-    };
-  }, []);
+    // Log the user message and update state
+    console.log('User message:', trimmedInput);
+    const userMessage = { sender: 'user', content: trimmedInput };
+    setMessages(prev => [...prev, userMessage]);
 
-  useEffect(() => {
-    const handleMessage = (event) => {
-      if (event.data.type === 'REDIRECT') {
-        router.push(event.data.path);
-      }
-      // Detect medical assistance requests
-      if (event.data.type === 'CHAT_MESSAGE') {
-        const messageText = event.data.text.toLowerCase();
-        // Expanded list of medical emergency keywords
-        const medicalKeywords = [
-          'medical emergency',
-          'need doctor',
-          'heart attack',
-          'bleeding',
-          'unconscious',
-          'can\'t breathe',
-          'hospital'
-        ];
-        
-        if (medicalKeywords.some(keyword => messageText.includes(keyword))) {
-          handleMedicalEmergency();
-        }
-      }
-    };
+    // Check for emergency keywords (case insensitive)
+    const lowerInput = trimmedInput.toLowerCase();
+    const emergencyKeywords = [
+      'medical emergency',
+      'emergency',
+      'ambulance',
+      'heart attack',
+      'stroke',
+      'bleeding',
+      'unconscious',
+      'not breathing'
+    ];
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [router]);
+    if (emergencyKeywords.some(keyword => lowerInput.includes(keyword))) {
+      console.log('Emergency detected!');
+      const emergencyMessage = {
+        sender: 'assistant',
+        content: '⚠️ This appears to be a medical emergency. Redirecting you to emergency resources...'
+      };
+      setMessages(prev => [...prev, emergencyMessage]);
 
-  const handleMedicalEmergency = async () => {
-    try {
-      const user = authService.currentUser;
-      if (user) {
-        console.log('Medical emergency detected - updating user status');
-        await firestoreService.updateUser(user.uid, {
-          'status.medicalEmergency': true,
-          'status.lastUpdated': new Date().toISOString(),
-          'status.notes': 'User needs medical assistance ASAP'
-        });
-        console.log('Status updated - redirecting to recommendations');
+      // Redirect after a short delay so the emergency message can be seen
+      setTimeout(() => {
         router.push('/recommendations');
-      } else {
-        console.warn('No user logged in for medical emergency');
-        router.push('/login'); // Redirect to login if not authenticated
-      }
-    } catch (error) {
-      console.error('Failed to update medical emergency status:', error);
-      // Show error to user
-      alert('Failed to process emergency request. Please try again.');
+      }, 1500);
+    }
+
+    // Clear the input field
+    setInput('');
+  };
+
+  // Send message on Enter key press
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      sendMessage();
     }
   };
 
-  if (!container) return null;
-
-  return createPortal(
-    <div className="fixed bottom-4 right-4 z-50">
-      <div className="chat-iframe-container">
-        <iframe
-          src="/chatbot.html"
-          style={{ width: '100%', height: '600px', border: 'none' }}
-          title="Dialogflow Chat"
-        />
+  return (
+    <div className="card w-80 bg-base-100 shadow-xl fixed bottom-4 right-4 z-50">
+      <div className="card-body">
+        <h3 className="card-title mb-4">Chat</h3>
+        {/* Message history container */}
+        <div className="overflow-y-auto h-52 p-2 border border-gray-200 rounded mb-4">
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={msg.sender === 'user' ? "text-blue-500 mb-2" : "text-green-500 mb-2"}
+            >
+              <strong>{msg.sender}:</strong> {msg.content}
+            </div>
+          ))}
+        </div>
+        <div className="input-group">
+          <input
+            type="text"
+            placeholder="Type a message..."
+            className="input input-bordered flex-1"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+          />
+          <button onClick={sendMessage} className="btn btn-primary">
+            Send
+          </button>
+        </div>
       </div>
-    </div>,
-    container
+    </div>
   );
 } 

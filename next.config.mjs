@@ -12,7 +12,12 @@ const nextConfig = {
         ]
       }
     ];
-  }
+  },
+  experimental: {
+    esmExternals: 'loose',
+    serverComponentsExternalPackages: ['undici']
+  },
+  transpilePackages: ['undici', '@firebase/auth']
 };
 
 export default nextConfig;

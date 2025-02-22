@@ -2,22 +2,28 @@
   "name": "woohacks25",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=16.8.0"
+  },
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@google/generative-ai": "latest",
-    "@react-google-maps/api": "latest",
-    "axios": "latest",
-    "firebase": "latest",
-    "firebase-admin": "latest",
+    "@google/generative-ai": "^0.2.0",
+    "@next/font": "^14.2.15",
+    "@react-google-maps/api": "^2.19.3",
+    "axios": "^1.6.7",
+    "firebase": "^10.8.0",
+    "firebase-admin": "^12.0.0",
+    "geist": "^1.3.1",
     "google-map-react": "^2.2.1",
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest"
+    "next": "^14.0.0",
+    "node": "^18.20.7",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
