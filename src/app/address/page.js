@@ -36,7 +36,16 @@ export default function AddressPage() {
         }
 
         try {
-            await firestoreService.setUser(user.uid, { address });
+            await firestoreService.setUser(user.uid, {
+                address: {
+                    formatted: address,
+                    coordinates: {
+                        lat: location.lat,
+                        lng: location.lng
+                    },
+                    lastUpdated: new Date().toISOString()
+                }
+            });
             router.push('/preferences');
         } catch (error) {
             alert('Error saving address: ' + error.message);
@@ -45,12 +54,12 @@ export default function AddressPage() {
 
     return (
         <div className="flex h-screen bg-gray-100">
-            <div className="w-1/2 p-4 bg-black text-white shadow-lg">
-                <h2 className="text-2xl font-bold mb-4">Enter Address</h2>
+            <div className="w-1/2 p-4 bg-gray-800 text-white shadow-lg">
+                <h2 className="text-2xl bg-gray-800 font-bold mb-4">Enter Address</h2>
                 <input
                     type="text"
                     placeholder="Address"
-                    className="input input-bordered w-full mb-4"
+                    className="input input-bordered w-full mb-4 bg-gray-700 text-white"
                     value={address}
                     onChange={handleAddressChange}
                 />
