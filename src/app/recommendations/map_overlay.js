@@ -1,6 +1,7 @@
 "use client";
 import React, {useState, useCallback, useEffect, useRef, useMemo} from "react";
 import {GoogleMap, useJsApiLoader} from "@react-google-maps/api";
+import CustomMarker from './CustomMarker'; // Import the CustomMarker component
 
 // DEFINE PEI SCORE MAP COLORS HERE
 function getColor(value) {
@@ -19,7 +20,21 @@ function getColor(value) {
     : '#8B0000';               // Dark Red
 }
 
-export default function MapOverlay() {
+// Updated Helper: Map confidence to opacity with more noticeable differences
+const getOpacity = (confidence) => {
+  switch (confidence) {
+    case 'H':
+      return 1.0;   // Fully opaque for high confidence
+    case 'M':
+      return 0.5;   // 50% opacity for medium confidence
+    case 'L':
+      return 0.2;   // 20% opacity for low confidence
+    default:
+      return 0.5;
+  }
+};
+
+export default function MapOverlay({landsatData}) {
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [hoverScore, setHoverScore] = useState(null);
@@ -42,6 +57,10 @@ export default function MapOverlay() {
     setMap(mapInstance);
     mapInstance.data.setMap(null);
   }, []);
+  
+  useEffect(() => {
+    console.log("Landsat Data:", landsatData);
+  }, [])
 
   useEffect(() => {
     if (map && window.google) {
@@ -60,8 +79,28 @@ export default function MapOverlay() {
     }
   }, [map]);
 
+  const center = useMemo(() => {
+    if (!landsatData || landsatData.length === 0) {
+      return { lat: 37.7749, lng: -122.4194 }; // Default center (San Francisco)
+    }
+    let sumLat = 0, sumLng = 0;
+    landsatData.forEach((point) => {
+      sumLat += parseFloat(point.lat);
+      sumLng += parseFloat(point.lng);
+    });
+    return { lat: sumLat / landsatData.length, lng: sumLng / landsatData.length };
+  }, [landsatData]);
 
-  // Helper function to fetch and parse PEI score CSV
+  useEffect(() => {
+    if (map && landsatData && landsatData.length > 0 && window.google) {
+      const bounds = new window.google.maps.LatLngBounds();
+      landsatData.forEach((point) => {
+        bounds.extend(new window.google.maps.LatLng(parseFloat(point.lat), parseFloat(point.lng)));
+      });
+      map.fitBounds(bounds);
+    }
+  }, [map, landsatData]);
+
   async function fetchCsvAndParse(url) {
     const response = await fetch(url);
     if (!response.ok) {
@@ -114,25 +153,19 @@ export default function MapOverlay() {
       return;
     }
 
-    try { //Show map
-      // Fetch & parse CSV for PEI score
+    try { 
       const scoreMap = await fetchCsvAndParse(csvUrl);
 
-      // Fetch GeoJSON
       const geoRes = await fetch(geoJsonUrl);
       if (!geoRes.ok) {
         throw new Error(`GeoJSON fetch failed: ${geoRes.status}`);
       }
       const geojson = await geoRes.json();
-      // Merge PEI score into GeoJSON
       mergePEIScoreIntoGeojson(geojson, scoreMap);
 
-      // Clear old data
       map.data.forEach((f) => map.data.remove(f));
-      // Add new data
       map.data.addGeoJson(geojson);
 
-      // Apply interpolated colors of polygons based on PEI score
       map.data.setStyle((feature) => {
         const score = feature.getProperty("PEI_score") || 0.0;
         const color = getColor(score);
@@ -150,13 +183,8 @@ export default function MapOverlay() {
     }
   };
 
-  // Define where to center the map
-  // Memoize to prevent resetting view center on renders
-  const center = useMemo(() => ({ lat: 37.7749, lng: -122.4194 }), []);
-  
   if (!isLoaded) return <p>Loading Map...</p>;
 
-  // Style for both "Show/Hide Walkability" button and "PEI Score" display
   const commonStyle = {
     background: isButtonHovered ? "rgb(235, 235, 235)" : "#fff",
     boxShadow: "0 0px 2px rgba(24, 24, 24, 0.3)",
@@ -173,7 +201,6 @@ export default function MapOverlay() {
     width: "152px",
   };
 
-  // Style the walkability score display
   const scoreDisplayStyle = {
     ...commonStyle,
     borderRadius: "0 2px 2px 0",
@@ -213,14 +240,23 @@ export default function MapOverlay() {
       )}
       </div>
 
-      {/* map default view settings */}
       <GoogleMap
         onLoad={onMapLoad}
         center={center}
         zoom={10}
         mapContainerStyle={{width: "100%", height: "100%"}}
       >
-        {/* TODO: include overlay of pins on recommended locations */}
+        {landsatData &&
+          landsatData.map((dataPoint, index) => (
+            <CustomMarker
+              key={index}
+              lat={parseFloat(dataPoint.lat)}
+              lng={parseFloat(dataPoint.lng)}
+              confidence={dataPoint.confidence}
+              acqDate={dataPoint.acq_date}
+              acqTime={dataPoint.acq_time}
+            />
+          ))}
       </GoogleMap>
     </div>
   );
