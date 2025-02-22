@@ -87,7 +87,7 @@ export default function Preferences() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen">
       <div className="container mx-auto p-4">
         <h1 className="text-4xl text-center mb-8 text-white">Emergency Assistance Preferences</h1>
 

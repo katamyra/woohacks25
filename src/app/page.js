@@ -8,6 +8,8 @@ export default function Home() {
   const [testResult, setTestResult] = useState('');
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [countdown, setCountdown] = useState(0);
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
@@ -31,11 +33,24 @@ export default function Home() {
     fetchUserData();
   }, [user]);
 
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    } else if (redirecting) {
+      window.location.href = '/preferences';
+    }
+  }, [countdown, redirecting]);
+
   const handleGoogleSignIn = async () => {
     try {
       const userResult = await authService.signInWithGoogle();
       setUser(userResult);
       setTestResult(`✅ Signed in as ${userResult.displayName}`);
+      setCountdown(5);
+      setRedirecting(true);
     } catch (error) {
       setTestResult(`❌ Sign in failed: ${error.message}`);
       console.error("Sign in error:", error);
@@ -54,44 +69,68 @@ export default function Home() {
 
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <h1 className="text-2xl font-bold">User Profile</h1>
+      <h1 className="text-4xl font-bold">Welcome to Project Name!</h1>
       
       <div className="flex flex-col items-center gap-4">
         {!user ? (
-          <button 
-            onClick={handleGoogleSignIn}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-          >
-            Sign in with Google
-          </button>
+          <div className="flex flex-col items-center gap-4">
+            <div className="form-control w-full max-w-xs">
+              <input 
+                type="text" 
+                placeholder="Username" 
+                className="input input-bordered w-full" 
+              />
+              <input 
+                type="password" 
+                placeholder="Password" 
+                className="input input-bordered w-full mt-2" 
+              />
+              <button 
+                className="btn btn-primary w-full mt-4"
+              >
+                Login
+              </button>
+            </div>
+            
+            <div className="divider">OR</div>
+            
+            <button 
+              onClick={handleGoogleSignIn}
+              className="btn bg-gray-200 text-gray-700 hover:bg-gray-300"
+            >
+              Sign in with Google
+            </button>
+          </div>
         ) : (
           <div className="flex flex-col items-center gap-4">
             <div className="flex flex-col items-center gap-2">
-              <img 
-                src={user.photoURL} 
-                alt={user.displayName}
-                className="w-12 h-12 rounded-full"
-              />
               <div className="text-center">
                 {/* Split displayName into first and last name */}
-                <h2 className="text-xl font-semibold">
+                <h2 className="text-3xl font-semibold">
                   {user.displayName.split(' ')[0]} {/* First Name */}
                 </h2>
-                <h3 className="text-lg">
+                <h3 className="text-2xl">
                   {user.displayName.split(' ').slice(1).join(' ')} {/* Last Name */}
                 </h3>
-                <p className="text-sm text-gray-600">{user.email}</p>
+                <p className="text-lg text-gray-600">{user.email}</p>
               </div>
             </div>
                    <button 
               onClick={handleSignOut}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+              className="px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-xl"
             >
               Sign Out
             </button>
+            {redirecting && (
+              <div className="text-center mt-4">
+                <p className="text-2xl mb-2">Plese confirm information. Redirecting to preferences in:</p>
+                <div className="countdown font-mono text-7xl">
+                  <span style={{ "--value": countdown }} className="countdown"></span>
+                </div>
+              </div>
+            )}
           </div>
         )}
-        
         
       </div>
     </div>
