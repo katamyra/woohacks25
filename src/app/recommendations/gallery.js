@@ -271,7 +271,7 @@ const Gallery = ({
         ? getWalkabilityScoreForRecommendation(rec, walkabilityData)
         : 0,
     }));
-  }, [recommendations, walkabilityData, etaMap]);
+  }, [recommendations, walkabilityData, etaMap]);  
 
   // Fixed filter groups (in desired order)
   const fixedFilters = [
