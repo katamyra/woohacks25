@@ -1,81 +1,74 @@
 "use client";
-import React, {useState, useCallback, useEffect, useRef, useMemo} from "react";
-import {GoogleMap, useJsApiLoader} from "@react-google-maps/api";
-import CustomMarker from './CustomMarker'; // Import the CustomMarker component
+import React, { useState, useCallback, useEffect, useMemo } from "react";
+import { GoogleMap, useJsApiLoader, Polygon, DirectionsRenderer } from "@react-google-maps/api";
+import * as turf from "@turf/turf";
+import CustomMarker from "./CustomMarker";
+import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
+import { useAuth } from "@/context/AuthContext";
 
-// DEFINE PEI SCORE MAP COLORS HERE
 function getColor(value) {
   const score = Math.max(0, Math.min(1, value));
-  return score > 0.95 ? '#006400'  // Dark Green
-    : score > 0.9 ? '#228B22'  // Forest Green
-    : score > 0.85 ? '#32CD32' // Lime Green
-    : score > 0.8 ? '#7FFF00'  // Chartreuse
-    : score > 0.7 ? '#ADFF2F' // Green-Yellow
-    : score > 0.6 ? '#FFFF66'  // Light Yellow
-    : score > 0.5 ? '#FFFF00'  // Bright Yellow
-    : score > 0.4 ? '#FFD700'  // Gold
-    : score > 0.3 ? '#FFA500'  // Orange
-    : score > 0.2 ? '#FF4500'  // Orange-Red
-    : score > 0.1 ? '#B22222'  // Firebrick
-    : '#8B0000';               // Dark Red
+  return score > 0.95 ? "#006400"
+    : score > 0.9 ? "#228B22"
+    : score > 0.85 ? "#32CD32"
+    : score > 0.8 ? "#7FFF00"
+    : score > 0.7 ? "#ADFF2F"
+    : score > 0.6 ? "#FFFF66"
+    : score > 0.5 ? "#FFFF00"
+    : score > 0.4 ? "#FFD700"
+    : score > 0.3 ? "#FFA500"
+    : score > 0.2 ? "#FF4500"
+    : score > 0.1 ? "#B22222"
+    : "#8B0000";
 }
 
-// Updated Helper: Map confidence to opacity with more noticeable differences
 const getOpacity = (confidence) => {
   switch (confidence) {
-    case 'H':
-      return 1.0;   // Fully opaque for high confidence
-    case 'M':
-      return 0.5;   // 50% opacity for medium confidence
-    case 'L':
-      return 0.2;   // 20% opacity for low confidence
+    case "H":
+      return 1.0;
+    case "M":
+      return 0.5;
+    case "L":
+      return 0.2;
     default:
       return 0.5;
   }
 };
 
-export default function MapOverlay({landsatData}) {
+export default function MapOverlay({ landsatData, recommendations }) {
+  const { user } = useAuth();
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [hoverScore, setHoverScore] = useState(null);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [routeInfo, setRouteInfo] = useState(null);
+  const [directions, setDirections] = useState(null);
 
-  const {isLoaded} = useJsApiLoader({
+  const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   });
 
-  // GEOJSON GCS link
-  const geoJsonUrl =
-    "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.geojson?cachebust=1";
-
-  // CSV GCS link
-  const csvUrl =
-    "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.csv?cachebust=1";
+  // GEOJSON and CSV URLs for additional overlays
+  const geoJsonUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.geojson?cachebust=1";
+  const csvUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.csv?cachebust=1";
 
   const onMapLoad = useCallback((mapInstance) => {
     setMap(mapInstance);
     mapInstance.data.setMap(null);
   }, []);
-  
+
   useEffect(() => {
     console.log("Landsat Data:", landsatData);
-  }, [])
+  }, [landsatData]);
 
   useEffect(() => {
     if (map && window.google) {
-      // Detect when mouse is hovering over a polygon; get PEI score
       map.data.addListener("mouseover", (e) => {
         const score = e.feature.getProperty("PEI_score");
-        if (score !== undefined && score !== null) {
-          setHoverScore(parseFloat(score));
-        } else {
-          setHoverScore(null);
-        }
+        setHoverScore(score !== undefined && score !== null ? parseFloat(score) : null);
       });
-      map.data.addListener("mouseout", () => {
-        setHoverScore(null);
-      });
+      map.data.addListener("mouseout", () => setHoverScore(null));
     }
   }, [map]);
 
@@ -100,6 +93,50 @@ export default function MapOverlay({landsatData}) {
       map.fitBounds(bounds);
     }
   }, [map, landsatData]);
+
+  // --- Turf Integration: Create Buffer Polygons around each fire marker ---
+  const firePolygons = useMemo(() => {
+    if (!landsatData || landsatData.length === 0) return [];
+    return landsatData.map((fire) => {
+      const point = turf.point([parseFloat(fire.lng), parseFloat(fire.lat)]);
+      const buffered = turf.buffer(point, 1000, { units: "meters" });
+      return buffered;
+    });
+  }, [landsatData]);
+
+  // --- Get Route Info using fetchRouteInfo ---
+  const handleSafeRoute = async () => {
+    if (!map || !user) return;
+
+    // Define approximate coordinates for origin and destination.
+    const originCoords = { lat: 33.760, lng: -84.392 }; // Centennial Olympic Park
+    const destinationCoords = { lat: 33.775, lng: -84.396 }; // Georgia Institute of Technology
+
+    let safeWaypoint = null;
+    if (firePolygons.length) {
+      const firePoly = firePolygons[0];
+      const line = turf.lineString(firePoly.geometry.coordinates[0]);
+      const lineLength = turf.length(line, { units: "meters" });
+      const samplePoint = turf.along(line, lineLength / 2, { units: "meters" });
+      const samplePointCoords = samplePoint.geometry.coordinates;
+      safeWaypoint = { lat: samplePointCoords[1], lng: samplePointCoords[0] };
+      // No range check now—any computed safeWaypoint is allowed.
+    }
+
+    const routeData = await fetchRouteInfo(originCoords, destinationCoords, safeWaypoint, user);
+    console.log("Route Data:", routeData);
+    setRouteInfo(routeData);
+
+    if (routeData.encodedPolyline && window.google && map) {
+      const path = window.google.maps.geometry.encoding.decodePath(routeData.encodedPolyline);
+      new window.google.maps.Polyline({
+        map: map,
+        path: path,
+        strokeColor: "#4285F4",
+        strokeWeight: 4,
+      });
+    }
+  };
 
   async function fetchCsvAndParse(url) {
     const response = await fetch(url);
@@ -147,15 +184,14 @@ export default function MapOverlay({landsatData}) {
   const toggleGeoJson = async () => {
     if (!map) return;
 
-    if (overlayVisible) { //Hide map
+    if (overlayVisible) {
       map.data.setMap(null);
       setOverlayVisible(false);
       return;
     }
 
-    try { 
+    try {
       const scoreMap = await fetchCsvAndParse(csvUrl);
-
       const geoRes = await fetch(geoJsonUrl);
       if (!geoRes.ok) {
         throw new Error(`GeoJSON fetch failed: ${geoRes.status}`);
@@ -199,6 +235,8 @@ export default function MapOverlay({landsatData}) {
     alignItems: "center",
     textAlign: "center",
     width: "152px",
+    cursor: "pointer",
+    marginRight: "10px",
   };
 
   const scoreDisplayStyle = {
@@ -210,7 +248,7 @@ export default function MapOverlay({landsatData}) {
   };
 
   return (
-    <div style={{flex: 1, position: "relative"}}>
+    <div style={{ flex: 1, position: "relative" }}>
       <div
         style={{
           position: "absolute",
@@ -221,30 +259,33 @@ export default function MapOverlay({landsatData}) {
           alignItems: "center",
         }}
       >
+        <button
+          onClick={toggleGeoJson}
+          style={commonStyle}
+          onMouseEnter={() => setIsButtonHovered(true)}
+          onMouseLeave={() => setIsButtonHovered(false)}
+        >
+          {overlayVisible ? "Hide Walkability" : "Show Walkability"}
+        </button>
 
-      <button
-        onClick={toggleGeoJson}
-        style={{...commonStyle, cursor: "pointer"}}
-        onMouseEnter={() => setIsButtonHovered(true)}
-        onMouseLeave={() => setIsButtonHovered(false)}
-      >
-        {overlayVisible ? "Hide Walkability" : "Show Walkability"}
-      </button>
+        {overlayVisible && (
+          <div style={scoreDisplayStyle}>
+            {hoverScore !== null
+              ? `Walkability: ${hoverScore.toFixed(2)}`
+              : "Walkability: ____"}
+          </div>
+        )}
 
-      {overlayVisible && (
-        <div style={scoreDisplayStyle}>
-          {hoverScore !== null
-            ? `Walkability: ${hoverScore.toFixed(2)}`
-            : "Walkability: ____"}
-        </div>
-      )}
+        <button onClick={handleSafeRoute} style={commonStyle}>
+          Get Safe Route
+        </button>
       </div>
 
       <GoogleMap
         onLoad={onMapLoad}
         center={center}
         zoom={10}
-        mapContainerStyle={{width: "100%", height: "100%"}}
+        mapContainerStyle={{ width: "100%", height: "100%" }}
       >
         {landsatData &&
           landsatData.map((dataPoint, index) => (
@@ -257,6 +298,20 @@ export default function MapOverlay({landsatData}) {
               acqTime={dataPoint.acq_time}
             />
           ))}
+
+        {firePolygons.map((poly, idx) => (
+          <Polygon
+            key={idx}
+            paths={poly.geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng }))}
+            options={{
+              fillColor: "red",
+              fillOpacity: 0.35,
+              strokeColor: "red",
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+            }}
+          />
+        ))}
       </GoogleMap>
     </div>
   );
