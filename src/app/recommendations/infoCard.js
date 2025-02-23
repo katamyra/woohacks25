@@ -81,7 +81,7 @@ const InfoCard = ({
               })()
             : `ETA: ${Math.round(place.dummyETA)} minutes`}
           {" • "}
-          Walkability: {place.walkability?.toFixed(2) || "N/A"}
+          Walkability: {place.walkability !== null ? place.walkability.toFixed(2) : "Loading..."}
 
         </p>
       </div>

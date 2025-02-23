@@ -141,8 +141,7 @@ export default function MapOverlay({ landsatData, recommendations, destination }
           const routeData = await fetchSafeRouteORS(
             currentUserLocation,
             destination,
-            avoidPolygons,
-            currentUserLocation
+            avoidPolygons
           );
           setRouteInfo(routeData);
           if (routeData.geometry) {
@@ -153,26 +152,15 @@ export default function MapOverlay({ landsatData, recommendations, destination }
               strokeColor: "#4285F4",
               strokeWeight: 4,
             });
-            console.log(`ETA (seconds): ${routeData.eta}`);
-            console.log(`Distance (meters): ${routeData.distance}`);
-
-            if (mergedGeojson && pathCoordinates.length > 0) {
-              const weightedPEIScore = calculateWeightedPEIScore(routeData.geometry, mergedGeojson);
-              if (weightedPEIScore !== null) {
-                console.log("Weighted PEI Score along route (meters):", weightedPEIScore.toFixed(2));
-              } else {
-                console.log("Route does not intersect any PEI polygons.");
-              }
-            }
           }
         } catch (error) {
           console.error("Error fetching safe route via ORS:", error);
         }
       };
       getSafeRoute();
-  localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
+      localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
     }
-  }, [destination, map, currentUserLocation, mergedGeojson, avoidPolygons]);
+  }, [destination, map, currentUserLocation, avoidPolygons]);
 
   // --- Get Route Info using fetchRouteInfo ---
   const handleSafeRoute = async () => {
