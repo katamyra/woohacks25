@@ -71,7 +71,7 @@ export default function AlertNotifier() {
   return (
     <div
       role="alert"
-      className={`alert alert-${visibleAlert.type} fixed top-4 right-4 z-[10000] shadow-lg 
+      className={`alert alert-${visibleAlert.type} fixed text-white bg-gray-900 top-4 right-4 z-[10000] shadow-lg 
         w-64 flex items-center justify-between rounded-lg min-h-[70px] py-5`}
     >
       <div className="flex items-center space-x-2 overflow-hidden">

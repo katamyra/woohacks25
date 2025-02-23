@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import "./globals.css";
 import { AuthProvider } from '@/context/AuthContext';
 import { NotificationProvider } from '@/context/NotificationContext';
@@ -17,6 +18,7 @@ const roboto = Roboto({
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
+  const [scriptLoaded, setScriptLoaded] = useState(false);
   const steps = [
     { name: 'Login', path: '/' },
     { name: 'Address', path: '/address' },
@@ -24,6 +26,15 @@ export default function RootLayout({ children }) {
     { name: 'Review', path: '/review' },
     { name: 'Recommendations', path: '/recommendations' },
   ];
+
+  useEffect(() => {
+    return () => {
+      const dfMessenger = document.querySelector('df-messenger');
+      if (dfMessenger) {
+        dfMessenger.remove();
+      }
+    };
+  }, []);
 
   return (
     <html lang="en" className={roboto.className}>
@@ -52,21 +63,24 @@ export default function RootLayout({ children }) {
             <Script 
               src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"
               strategy="lazyOnload"
+              onLoad={() => setScriptLoaded(true)}
             />
-            <df-messenger
-               project-id={process.env.NEXT_PUBLIC_PROJECT_ID}
-               agent-id={process.env.NEXT_PUBLIC_AGENT_ID}
-               language-code="en"
-               chat-title="Emergency Assistant"
-               style={{ 
-                 width: '100%',
-                 maxWidth: '400px',
-                 height: '500px',
-                 position: 'fixed',
-                 bottom: '20px',
-                 right: '20px'
-               }}
-            ></df-messenger>
+            {scriptLoaded && (
+              <df-messenger
+                project-id={process.env.NEXT_PUBLIC_PROJECT_ID}
+                agent-id={process.env.NEXT_PUBLIC_AGENT_ID}
+                language-code="en"
+                chat-title="Emergency Assistant"
+                style={{ 
+                  width: '100%',
+                  maxWidth: '400px',
+                  height: '500px',
+                  position: 'fixed',
+                  bottom: '20px',
+                  right: '20px'
+                }}
+              ></df-messenger>
+            )}
           </NotificationProvider>
         </AuthProvider>
       </body>
