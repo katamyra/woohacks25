@@ -264,3 +264,6 @@ By parsing Gemini’s output, this utility finds URLs within the text and sends 
 **Purpose:**  
 This file converts a LineString geometry from an OpenRouteService response into a list of coordinate objects (with `lat` and `lng` keys) so that the route can be properly rendered on the map.
 
+**Reference**
+Pedestrian Environmental Index research paper: https://www.sciencedirect.com/science/article/pii/S0966692314001343
+
