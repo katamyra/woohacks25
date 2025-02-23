@@ -310,7 +310,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
       <GoogleMap
         onLoad={onMapLoad}
         center={center}
-        zoom={16}
+        zoom={15}
         mapContainerStyle={{ width: "100%", height: "100%" }}
       >
         {landsatData &&
