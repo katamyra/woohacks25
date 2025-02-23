@@ -33,33 +33,43 @@ This project is built using Next.js and modern React tools. It assists users aff
 
 ## Tech Stack
 
-### 📁 Frontend
-- **Next.js** — React framework for server-rendered and static web applications
-- **React** — Library for building user interfaces
-- **Tailwind CSS** — Utility-first CSS framework for modern UI development
+### Frontend
+> **Next.js** — React framework for server-rendered and static web applications  
+> **React** — Library for building user interfaces  
+> **Tailwind CSS** — Utility-first CSS framework for modern UI development
 
-### 📡 Backend
-- **Next.js API Routes** — Built-in API handling for seamless backend integration
-- **Axios** — Promise-based HTTP client for API interactions
+---
 
-### 🌍 AI & Mapping
-- **Google Generative AI (Gemini)** — AI-powered content generation
-- **Google Maps API** — Interactive maps integration
-- **Google Places API** — Detailed place information retrieval
-- **Google Directions API** — Optimized routing and navigation
-- **Dialogflow** — Conversational AI platform for natural language interactions
+### Backend
+> **Next.js API Routes** — Built-in API handling for seamless backend integration  
+> **Axios** — Promise-based HTTP client for API interactions
 
-### 🔐 Data & Authentication
-- **Firebase Firestore** — Scalable NoSQL cloud database
-- **Firebase Auth** — Secure user authentication and identity management
+---
 
-### 📊 External Data Sources
-- **NASA Landsat API** — Access to satellite imagery and earth observation data
-- **OpenRouteService (ORS)** — Advanced route planning and geospatial services
+### AI & Mapping
+> **Google Generative AI (Gemini)** — AI-powered content generation  
+> **Google Maps API** — Interactive maps integration  
+> **Google Places API** — Detailed place information retrieval  
+> **Google Directions API** — Optimized routing and navigation  
+> **Dialogflow** — Conversational AI platform for natural language interactions
 
-### 🛠️ Utilities
-- **Turf.js** — Geospatial analysis and computations
-- **Axios** — Simplified HTTP requests and API interactions
+---
+
+### Data & Authentication
+> **Firebase Firestore** — Scalable NoSQL cloud database  
+> **Firebase Auth** — Secure user authentication and identity management
+
+---
+
+### External Data Sources
+> **NASA Landsat API** — Access to satellite imagery and earth observation data  
+> **OpenRouteService (ORS)** — Advanced route planning and geospatial services
+
+---
+
+### Utilities
+> **Turf.js** — Geospatial analysis and computations  
+> **Axios** — Simplified HTTP requests and API interactions
 
 
 ---
