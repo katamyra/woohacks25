@@ -80,6 +80,12 @@ export default function Preferences() {
           communicationPrefs
         }
       });
+      const existingUser = JSON.parse(localStorage.getItem('user')) || {};
+      existingUser.transportation = transportation;
+      
+      localStorage.setItem('user', JSON.stringify({
+        ...existingUser, 
+      }));
       // Redirect to review page after successful save
       router.push('/review');
     } catch (error) {

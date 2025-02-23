@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from "react";
 import MapOverlay from "./map_overlay";
 import Gallery from "./gallery";
-import { useAuth } from "@/context/AuthContext";
-import { firestoreService } from "@/firebase/services/firestore";
-import { fetchRecommendations } from "@/utils/fetchRecommendations";
-import axios from "axios";
+import { useAuth } from '@/context/AuthContext';
+import { firestoreService } from '@/firebase/services/firestore';
+import { fetchRecommendations } from '@/utils/fetchRecommendations';
+import axios from 'axios';
 
 const RecommendationsPage = () => {
   const [galleryExpanded, setGalleryExpanded] = useState(false);
@@ -112,14 +112,9 @@ const RecommendationsPage = () => {
           satellite: item.satellite,
         }));
 
-        // Filter the data to include only points near "altnata"
-        const filteredData = data.filter((item) => {
-          const distance = getDistanceFromLatLonInKm(
-            item.lat,
-            item.lng,
-            targetLat,
-            targetLng
-          );
+        const filteredData = data.filter(item => {
+          const distance = getDistanceFromLatLonInKm(item.lat, item.lng, targetLat, targetLng);
+
           return distance < thresholdDistanceKm;
         });
 
@@ -184,6 +179,7 @@ const RecommendationsPage = () => {
           userLocation={{ lat, lng }}
           geminiExplanations={geminiExplanations}
           user={user}
+          galleryExpanded={galleryExpanded}
           onSetDestination={setDestination}
         />
       </div>

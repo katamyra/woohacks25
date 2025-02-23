@@ -112,6 +112,7 @@ export default function AddressPage() {
           lastUpdated: new Date().toISOString(),
         },
       });
+
       router.push('/preferences');
     } catch (error) {
       alert('Error saving address: ' + error.message);

@@ -1,7 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
+import { useAuth } from '@/context/AuthContext';
 
-const InfoPopup = ({ place, geminiExplanation, onClose, onSetDestination }) => {
+const InfoPopup = ({ place, geminiExplanation, onClose }) => {
+  const { user, loading } = useAuth();
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [routeInfo, setRouteInfo] = useState(null);
+  const lat = place.geometry.location.lat;
+  const lng = place.geometry.location.lng;
+  const destinationCoord = {lat, lng};
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user) {
+        try {
+          const userData = await firestoreService.getUserData(user.uid);
+          setUserLocation({lat: userData.address.coordinates.lat, lng: userData.address.coordinates.lng});
+          console.log("userLocation", userLocation);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+    fetchUserData();
+  }, [user]);
+
+  useEffect(() => {
+    console.log("Route Info", routeInfo);
+  }, [routeInfo]);
+
+  // Function to handle setting the safe route
+  const handleSetSafeRoute = () => {
+    const firePolygonsCollection = localStorage.getItem("avoidPolygons");
+    setRouteInfo(fetchSafeRouteORS(userLocation, destinationCoord, firePolygonsCollection, userLocation));
+  };
+
+  useEffect(() => {
+    console.log("routeInfo", routeInfo);
+  }, [routeInfo]);
 
   const handleSetDestination = () => {
     if (onSetDestination && place.geometry && place.geometry.location) {
@@ -124,24 +161,23 @@ const InfoPopup = ({ place, geminiExplanation, onClose, onSetDestination }) => {
             </div>
           )}
         </div>
-
-        {/* New button in the bottom right to set destination */}
+        {/* Set Safe Route Button */}
         <button
-          onClick={handleSetDestination}
+          onClick={handleSetSafeRoute}
           style={{
             position: "absolute",
-            bottom: "10px",
-            right: "10px",
-            backgroundColor: "#007BFF",
-            color: "#fff",
+            bottom: "20px",
+            right: "20px",
+            padding: "10px 20px",
+            backgroundColor: "#4CAF50",
+            color: "white",
             border: "none",
-            padding: "10px 15px",
-            borderRadius: "4px",
+            borderRadius: "5px",
             cursor: "pointer",
-            fontSize: "14px",
+            zIndex: 1000,
           }}
         >
-          Set as Destination
+          Set Safe Route
         </button>
       </div>
     </div>

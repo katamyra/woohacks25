@@ -3,10 +3,11 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { GoogleMap, useJsApiLoader, Polygon, Marker } from "@react-google-maps/api";
 import * as turf from "@turf/turf";
 import CustomMarker from "./CustomMarker";
-import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
+import { calculateWeightedPEIScore } from "@/utils/calculateLinestringPEI";
 import { useAuth } from "@/context/AuthContext";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { decodeORSGeometry } from "@/utils/decodeORSGeometry";
+
 
 // Helper to get a color based on a numeric score.
 function getColor(value) {
@@ -38,15 +39,16 @@ const getOpacity = (confidence) => {
   }
 };
 
-export default function MapOverlay({ landsatData, recommendations, userLocation, destination }) {
+export default function MapOverlay({ landsatData, recommendations, destination }) {
   console.log("Recommendations:", recommendations)
   const { user } = useAuth();
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [hoverScore, setHoverScore] = useState(null);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [mergedGeojson, setMergedGeojson] = useState(null);
   const [routeInfo, setRouteInfo] = useState(null);
-  const [currentUserLocation, setCurrentUserLocation] = useState(userLocation);
+  const [currentUserLocation, setCurrentUserLocation] = useState();
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -118,7 +120,7 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
     }
   }, [map, landsatData]);
 
-  // Create avoid polygons from landsatData (fire polygons)
+  // Avoid polygons from landsatData (fire polygons)
   const firePolygons = landsatData.map((dataPoint) => {
     const point = turf.point([dataPoint.lng, dataPoint.lat]);
     const polygon = turf.buffer(point, 1, { units: "kilometers" });
@@ -128,7 +130,7 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
   // Wrap polygons as a MultiPolygon for the ORS API
   const avoidPolygons = {
     type: "MultiPolygon",
-    coordinates: firePolygons.map((coords) => coords),
+    coordinates: firePolygons.map(coords => coords) 
   };
 
   // Automatically fetch and render the safe route when a destination is set.
@@ -153,15 +155,67 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
             });
             console.log(`ETA (seconds): ${routeData.eta}`);
             console.log(`Distance (meters): ${routeData.distance}`);
+
+            if (mergedGeojson && pathCoordinates.length > 0) {
+              const weightedPEIScore = calculateWeightedPEIScore(routeData.geometry, mergedGeojson);
+              if (weightedPEIScore !== null) {
+                console.log("Weighted PEI Score along route (meters):", weightedPEIScore.toFixed(2));
+              } else {
+                console.log("Route does not intersect any PEI polygons.");
+              }
+            }
           }
         } catch (error) {
           console.error("Error fetching safe route via ORS:", error);
         }
       };
       getSafeRoute();
+  localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
+    }
+  }, [destination, map, currentUserLocation, mergedGeojson, avoidPolygons]);
+
+  // --- Get Route Info using fetchRouteInfo ---
+  const handleSafeRoute = async () => {
+    if (!map || !user) return;
+    const originCoords = { lat: 33.6522, lng: -84.3394 }; // 출발지
+    const destinationCoords = { lat: 33.775, lng: -84.396 }; // 목적지
+    // Pass an empty array or no waypoints at all:
+    const routeData = await fetchRouteInfo(originCoords, destinationCoords, [], currentUserLocation);
+    console.log("Route Data:", routeData);
+    
+    // Render the route, etc.
+    if (routeData.encodedPolyline && window.google && map) {
+      const path = window.google.maps.geometry.encoding.decodePath(routeData.encodedPolyline);
+      new window.google.maps.Polyline({
+        map: map,
+        path: path,
+        strokeColor: "#4285F4",
+        strokeWeight: 4,
+      });
+    }
+  };
+  const handleSafeRouteORS = useCallback(async () => {
+    if (!map || !user) return;
+    const originCoords = { lat: 33.6522, lng: -84.3394 };
+    const destinationCoords = { lat: 33.775, lng: -84.396 };
+    // ORS function call
+    const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons);
+    console.log("ORS Route Data:", routeData);
+    
+    if (routeData.geometry && window.google && map) {
+      const pathCoordinates = decodeORSGeometry(routeData.geometry);
+      
+      new window.google.maps.Polyline({
+        map: map,
+        path: pathCoordinates,
+        strokeColor: "#4285F4",
+        strokeWeight: 4,
+      });
+      
+      console.log(`ETA (seconds): ${routeData.eta}`);
+      console.log(`distance (meters): ${routeData.distance}`);
     }
   }, [destination, map, currentUserLocation, avoidPolygons]);
-
   async function fetchCsvAndParse(url) {
     const response = await fetch(url);
     if (!response.ok) {
@@ -189,7 +243,6 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
     }
     return scoreMap;
   }
-
   // Merge PEI scores into GeoJSON features.
   function mergePEIScoreIntoGeojson(geojson, scoreMap) {
     if (!geojson.features) return geojson;
@@ -201,10 +254,8 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
     });
     return geojson;
   }
-
   const geoJsonUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.geojson?cachebust=1";
   const csvUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.csv?cachebust=1";
-
   const toggleGeoJson = async () => {
     if (!map) return;
     if (overlayVisible) {
@@ -237,9 +288,7 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
       console.error("Error toggling overlay:", error);
     }
   };
-
   if (!isLoaded) return <p>Loading Map...</p>;
-
   const commonStyle = {
     background: isButtonHovered ? "rgb(235, 235, 235)" : "#fff",
     boxShadow: "0 0px 2px rgba(24, 24, 24, 0.3)",
@@ -257,7 +306,6 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
     cursor: "pointer",
     marginRight: "10px",
   };
-
   const scoreDisplayStyle = {
     ...commonStyle,
     borderRadius: "0 2px 2px 0",
@@ -265,7 +313,8 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
     color: "#fff",
     cursor: "default",
   };
-
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const userLocation = storedUser?.userLocation; // Use optional chaining to avoid errors
   return (
     <div style={{ flex: 1, position: "relative" }}>
       <div
@@ -286,7 +335,6 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
         >
           {overlayVisible ? "Hide Walkability" : "Show Walkability"}
         </button>
-
         {overlayVisible && (
           <div style={scoreDisplayStyle}>
             {hoverScore !== null
@@ -295,7 +343,6 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
           </div>
         )}
       </div>
-
       <GoogleMap
         onLoad={onMapLoad}
         center={center}
@@ -314,7 +361,6 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
               acqTime={dataPoint.acq_time}
             />
           ))}
-
         {/* Render fire polygons */}
         {firePolygons.map((poly, idx) => (
           <Polygon
@@ -329,7 +375,6 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
             }}
           />
         ))}
-
         {/* Render destination pins for every amenity */}
         {recommendations &&
           recommendations.map((place, idx) => {
