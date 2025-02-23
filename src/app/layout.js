@@ -10,6 +10,8 @@ import AlertNotifier from '@/components/AlertNotifier';
 import { Header } from '@/components/ui/Header';
 import { Roboto } from 'next/font/google';
 import StepsProgress from '@/components/ui/StepsProgress';
+import { Provider } from 'react-redux';
+import store from "./store";
 
 const roboto = Roboto({ 
   weight: ['400', '500', '700'],
@@ -39,9 +41,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={roboto.className}>
       <body className="flex flex-col min-h-screen">
-        <AuthProvider>
-          <NotificationProvider>
-            <div className="bg-white text-black">
+        <Provider store={store}>
+          <AuthProvider>
+            <NotificationProvider>
+              <div className="bg-white text-black">
               <AlertNotifier className="min-h-[50px]" />
             </div>
             <div className="bg-white text-black">
@@ -83,6 +86,7 @@ export default function RootLayout({ children }) {
             )}
           </NotificationProvider>
         </AuthProvider>
+        </Provider>
       </body>
     </html>
   );
