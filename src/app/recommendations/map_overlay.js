@@ -38,7 +38,7 @@ const getOpacity = (confidence) => {
   }
 };
 
-export default function MapOverlay({ landsatData, recommendations, userLocation, destination }) {
+export default function MapOverlay({ landsatData, recommendations, destination }) {
   console.log("Recommendations:", recommendations)
   const { user } = useAuth();
   const [map, setMap] = useState(null);
@@ -46,7 +46,7 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
   const [hoverScore, setHoverScore] = useState(null);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [routeInfo, setRouteInfo] = useState(null);
-  const [currentUserLocation, setCurrentUserLocation] = useState(userLocation);
+  const [currentUserLocation, setCurrentUserLocation] = useState();
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -167,7 +167,7 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
     }
   };
 
-  const handleSafeRouteORS = async () => {
+  const handleSafeRouteORS = useCallback(async () => {
     if (!map || !user) return;
 
     const originCoords = { lat: 33.6522, lng: -84.3394 };
@@ -295,6 +295,9 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
     color: "#fff",
     cursor: "default",
   };
+
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const userLocation = storedUser?.userLocation; // Use optional chaining to avoid errors
 
   return (
     <div style={{ flex: 1, position: "relative" }}>
