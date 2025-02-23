@@ -1,13 +1,11 @@
-// InfoCard.js
 import React, { useState, useEffect } from "react";
 import InfoPopup from "./infoPopup";
 import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
 
-const InfoCard = ({ place, userLocation, geminiExplanation, user }) => {
+const InfoCard = ({ place, userLocation, geminiExplanation, user, onSetDestination }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [routeInfo, setRouteInfo] = useState({ eta: null, distance: null });
 
-  // Fetch route information (ETA and distance) when the component mounts.
   useEffect(() => {
     const getRouteDetails = async () => {
       try {
@@ -40,11 +38,10 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user }) => {
           position: "relative",
         }}
       >
-        {/* Category badge */}
         <div
           style={{
             position: "absolute",
-            top: "5px",
+            bottom: "5px",
             right: "5px",
             backgroundColor: "#007BFF",
             color: "#fff",
@@ -59,17 +56,20 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user }) => {
         <h3 style={{ marginTop: "0.5rem" }}>{place.name}</h3>
         <p style={{ fontSize: "12px", color: "#555" }}>
           {routeInfo.distance
-            ? `${routeInfo.distance} miles away`
+            ? `${(routeInfo.distance / 1609.34).toFixed(1)} miles away`
             : "Calculating distance..."}
           {" • "}
           {place.vicinity}
         </p>
         <p style={{ fontSize: "12px", color: "#555" }}>
           {routeInfo.eta
-            ? `ETA: ${routeInfo.eta} minutes`
-            : `ETA: ${place.dummyETA} minutes`}
+            ? (() => {
+                const etaMinutes = Math.round(parseInt(routeInfo.eta) / 60);
+                return `ETA: ${etaMinutes} minutes`;
+              })()
+            : `ETA: ${Math.round(place.dummyETA)} minutes`}
           {" • "}
-          Walkability: {place.walkability}
+          Walkability: {place.walkability?.toFixed(2) || "N/A"}
         </p>
       </div>
 
@@ -78,6 +78,7 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user }) => {
           place={place}
           geminiExplanation={geminiExplanation}
           onClose={() => setShowPopup(false)}
+          onSetDestination={onSetDestination}
         />
       )}
     </>

@@ -36,6 +36,14 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
     console.log("routeInfo", routeInfo);
   }, [routeInfo]);
 
+  const handleSetDestination = () => {
+    if (onSetDestination && place.geometry && place.geometry.location) {
+      // Set the destination to the amenity's coordinates.
+      onSetDestination(place.geometry.location);
+      onClose(); // Optionally close the popup after setting the destination.
+    }
+  };
+
   return (
     <div
       className="modal-overlay"
@@ -58,12 +66,12 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
           backgroundColor: "#fff",
           color: "#000",
           width: "90%",
-          maxWidth: "400px", // smaller width for a compact popup
+          maxWidth: "400px",
           padding: "20px",
           position: "relative",
           borderRadius: "12px",
           boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-          overflow: "visible", // allow tooltip to display outside
+          overflow: "visible",
         }}
       >
         <button
@@ -87,7 +95,7 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
             src={`https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${place.photos[0].photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
             alt={place.name}
             style={{
-              width: "80px", // smaller image size
+              width: "80px",
               height: "80px",
               borderRadius: "8px",
               display: "block",
@@ -108,10 +116,12 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
           {place.user_ratings_total} reviews)
         </p>
         <p style={{ fontSize: "14px", marginBottom: "8px" }}>
-          <strong>Price Level:</strong> {place.price_level ? "$".repeat(place.price_level) : "Not provided"}
+          <strong>Price Level:</strong>{" "}
+          {place.price_level ? "$".repeat(place.price_level) : "Not provided"}
         </p>
         <p style={{ fontSize: "14px", marginBottom: "16px" }}>
-          <strong>Description:</strong> This is a detailed description of the place. It might include additional information provided by Gemini AI.
+          <strong>Description:</strong> This is a detailed description of the place.
+          It might include additional information provided by Gemini AI.
         </p>
 
         <div
@@ -119,13 +129,17 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
           onMouseEnter={() => setShowInfoTooltip(true)}
           onMouseLeave={() => setShowInfoTooltip(false)}
         >
-          <span style={{ cursor: "help", fontSize: "20px", marginRight: "8px" }}>ℹ️</span>
-          <span style={{ fontSize: "16px", fontWeight: "bold" }}>Why this place?</span>
+          <span style={{ cursor: "help", fontSize: "20px", marginRight: "8px" }}>
+            ℹ️
+          </span>
+          <span style={{ fontSize: "16px", fontWeight: "bold" }}>
+            Why this place?
+          </span>
           {showInfoTooltip && (
             <div
               style={{
                 position: "absolute",
-                top: "110%", // move below the icon
+                top: "110%",
                 left: "0",
                 marginTop: "8px",
                 padding: "10px",
@@ -143,7 +157,6 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
             </div>
           )}
         </div>
-
         {/* Set Safe Route Button */}
         <button
           onClick={handleSetSafeRoute}
