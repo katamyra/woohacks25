@@ -2,16 +2,15 @@
 import React, { useState, useEffect } from "react";
 import MapOverlay from "./map_overlay";
 import Gallery from "./gallery";
-import { useAuth } from '@/context/AuthContext';
-import { firestoreService } from '@/firebase/services/firestore';
-import { fetchRecommendations } from '@/utils/fetchRecommendations';
-import axios from 'axios';
-import { fetchSafeRouteORS } from '@/utils/fetchSafeRouteORS';
+import { useAuth } from "@/context/AuthContext";
+import { firestoreService } from "@/firebase/services/firestore";
+import { fetchRecommendations } from "@/utils/fetchRecommendations";
+import axios from "axios";
 
 const RecommendationsPage = () => {
   const [galleryExpanded, setGalleryExpanded] = useState(false);
-  const [review, setReview] = useState('');
-  const [address, setAddress] = useState('');
+  const [review, setReview] = useState("");
+  const [address, setAddress] = useState("");
   const [lng, setLng] = useState(0);
   const [lat, setLat] = useState(0);
   const [recommendations, setRecommendations] = useState([]);
@@ -19,6 +18,7 @@ const RecommendationsPage = () => {
   const { user, loading } = useAuth();
 
   const [geminiExplanations, setGeminiExplanations] = useState({});
+  const [destination, setDestination] = useState(null);
 
   // Firestore fetch 
   useEffect(() => {
@@ -26,20 +26,20 @@ const RecommendationsPage = () => {
       if (user) {
         try {
           const userData = await firestoreService.getUserData(user.uid);
-          console.log('User Data:', userData);
+          console.log("User Data:", userData);
           setReview(userData.review);
           setAddress(userData.address.formatted);
           setLng(userData.address.coordinates.lng);
           setLat(userData.address.coordinates.lat);
         } catch (error) {
-          console.error('Error fetching user data:', error);
+          console.error("Error fetching user data:", error);
         }
       }
     };
     fetchUserData();
   }, [user]);
 
-  // Fetch Data needed for reccomendations
+  // Fetch data needed for recommendations
   useEffect(() => {
     const fetchInitialRecommendations = async () => {
       if (review && address && lng && lat) {
@@ -47,7 +47,7 @@ const RecommendationsPage = () => {
           const data = await fetchRecommendations(review, { address, lng, lat });
           setRecommendations(data);
         } catch (error) {
-          console.error('Error fetching recommendations:', error);
+          console.error("Error fetching recommendations:", error);
         }
       }
     };
@@ -95,14 +95,14 @@ const RecommendationsPage = () => {
   }
 
   // Define the "altnata" location as Atlanta's coordinates
-  const targetLat = 33.7490; 
-  const targetLng = -84.3880; 
-  const thresholdDistanceKm = 50; 
+  const targetLat = 33.7490;
+  const targetLng = -84.3880;
+  const thresholdDistanceKm = 50;
   useEffect(() => {
     const fetchLandsatData = async () => {
       try {
-        const response = await axios.get('/api/landsat'); // API route
-        const data = response.data.data.map(item => ({
+        const response = await axios.get("/api/landsat"); // API route
+        const data = response.data.data.map((item) => ({
           lat: parseFloat(item.latitude),
           lng: parseFloat(item.longitude),
           confidence: item.confidence,
@@ -113,15 +113,20 @@ const RecommendationsPage = () => {
         }));
 
         // Filter the data to include only points near "altnata"
-        const filteredData = data.filter(item => {
-          const distance = getDistanceFromLatLonInKm(item.lat, item.lng, targetLat, targetLng);
+        const filteredData = data.filter((item) => {
+          const distance = getDistanceFromLatLonInKm(
+            item.lat,
+            item.lng,
+            targetLat,
+            targetLng
+          );
           return distance < thresholdDistanceKm;
         });
 
-        setLandsatData(filteredData); 
-        console.log('Filtered Landsat Data:', filteredData);
+        setLandsatData(filteredData);
+        console.log("Filtered Landsat Data:", filteredData);
       } catch (error) {
-        console.error('Error fetching LANDSAT data:', error);
+        console.error("Error fetching LANDSAT data:", error);
       }
     };
 
@@ -159,14 +164,14 @@ const RecommendationsPage = () => {
   return (
     <div style={containerStyle}>
       <div style={galleryStyle} className="bg-gray-800">
-        <button 
+        <button
           onClick={toggleGallery}
           style={{
             marginBottom: "10px",
             backgroundColor: "#444",
             color: "#fff",
             border: "none",
-            padding: "10px"
+            padding: "10px",
           }}
         >
           {galleryExpanded ? "Collapse Gallery" : "Expand Gallery"}
@@ -174,20 +179,21 @@ const RecommendationsPage = () => {
 
         <h2>Recommended Locations</h2>
         {/* Render the Gallery component */}
-        <Gallery 
-          recommendations={recommendations} 
-          userLocation={{ lat, lng }} 
+        <Gallery
+          recommendations={recommendations}
+          userLocation={{ lat, lng }}
           geminiExplanations={geminiExplanations}
           user={user}
+          onSetDestination={setDestination}
         />
       </div>
 
       {!galleryExpanded && (
         <div style={mapStyle}>
-          <MapOverlay 
-            landsatData={landsatData} 
-            recommendations={recommendations} 
+          <MapOverlay
+            landsatData={landsatData}
             userLocation={{ lat, lng }}
+            destination={destination}
           />
         </div>
       )}
