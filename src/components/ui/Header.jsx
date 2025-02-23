@@ -46,6 +46,11 @@ export function Header() {
                 Recommendations
               </button>
             </li>
+            <li>
+              <button onClick={() => handleNavigation('/review')}>
+                Review Information
+              </button>
+            </li>
           </ul>
         </div>
       </div>
