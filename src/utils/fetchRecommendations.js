@@ -11,7 +11,7 @@ export const fetchRecommendations = async (review, { address, lng, lat }) => {
     Note: Include amenities regardless of their "Open now" status.
 
     Following the above guidelines, also include a minimum of 3 amenities of each of the following categories:
-    "Healthcare", "shelter", "food/water".
+    "Healthcare" (which includes things like urgent care, hospitals, doctors, etc. NOT INCLUDING VETERINARIANS), "shelter", "food/water". 
     According to the amenities you think should also be included based on the user's background, add additional categories as needed.
 
     Additionally, include only amenities that are 

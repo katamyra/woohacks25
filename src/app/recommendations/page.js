@@ -148,6 +148,7 @@ const RecommendationsPage = () => {
           recommendations={recommendations} 
           userLocation={{ lat, lng }} 
           geminiExplanations={geminiExplanations}
+          user={user}
         />
       </div>
 
