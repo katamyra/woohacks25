@@ -1,16 +1,31 @@
 'use client';
 
-import { firestoreService } from '../firebase/services/firestore';
-import { authService } from '../firebase/services/auth';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { authService } from '../firebase/services/auth';
+import { firestoreService } from '../firebase/services/firestore';
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
   const { user, loading } = useAuth();
   const [testResult, setTestResult] = useState('');
   const [userData, setUserData] = useState(null);
   const [countdown, setCountdown] = useState(0);
   const [redirecting, setRedirecting] = useState(false);
+
+  // Dummy login handler for username/password form (does nothing for now)
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // You can add real login logic here
+    setTestResult('Login button clicked');
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -23,7 +38,6 @@ export default function Home() {
         }
       }
     };
-    
     fetchUserData();
   }, [user]);
 
@@ -41,9 +55,13 @@ export default function Home() {
       }, 1000);
       return () => clearInterval(timer);
     } else if (redirecting) {
-      window.location.href = '/address';
+      router.push('/address');
     }
-  }, [countdown, redirecting]);
+  }, [countdown, redirecting, router]);
+
+  useEffect(() => {
+    document.title = "Login - Survive";
+  }, []);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -67,74 +85,66 @@ export default function Home() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen text-xl">Loading...</div>;
   }
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <h1 className="text-4xl font-bold">Welcome to Project Name!</h1>
-      
-      <div className="flex flex-col items-center gap-4">
-        {!user ? (
-          <div className="flex flex-col items-center gap-4">
-            <div className="form-control w-full max-w-xs">
-              <input 
-                type="text" 
-                placeholder="Username" 
-                className="input input-bordered w-full" 
-              />
-              <input 
-                type="password" 
-                placeholder="Password" 
-                className="input input-bordered w-full mt-2" 
-              />
-              <button 
-                className="btn btn-primary w-full mt-4"
-              >
-                Login
-              </button>
-            </div>
-            
-            <div className="divider">OR</div>
-            
-            <button 
-              onClick={handleGoogleSignIn}
-              className="btn bg-gray-200 text-gray-700 hover:bg-gray-300"
-            >
-              Sign in with Google
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex flex-col items-center gap-2">
-              <div className="text-center">
-                {/* Split displayName into first and last name */}
-                <h2 className="text-3xl font-semibold">
-                  {user.displayName.split(' ')[0]} {/* First Name */}
-                </h2>
-                <h3 className="text-2xl">
-                  {user.displayName.split(' ').slice(1).join(' ')} {/* Last Name */}
-                </h3>
-                <p className="text-lg text-gray-600">{user.email}</p>
-              </div>
-            </div>
-                   <button 
-              onClick={handleSignOut}
-              className="px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-xl"
-            >
-              Sign Out
-            </button>
-            {redirecting && (
-              <div className="text-center mt-4">
-                <p className="text-2xl mb-2">Plese confirm information. Redirecting to preferences in:</p>
-                <div className="countdown font-mono text-7xl">
-                  <span style={{ "--value": countdown }} className="countdown"></span>
+    <div className="flex h-screen">
+      {/* Left side - Login/Welcome Card */}
+      <div className="w-1/2 flex items-center justify-center px-4">
+        { !user ? (
+          // Login Card for not logged in state
+          <Card className="w-full max-w-md p-8 bg-card shadow-lg rounded-lg">
+            <CardHeader>
+              <h1 className="text-2xl font-bold text-center mb-4">Sign in to Survive</h1>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="username" className="block text-sm font-medium text-muted-foreground">Username</Label>
+                  <Input id="username" type="text" placeholder="Enter your username" className="mt-1" />
                 </div>
-              </div>
-            )}
-          </div>
+                <div>
+                  <Label htmlFor="password" className="block text-sm font-medium text-muted-foreground">Password</Label>
+                  <Input id="password" type="password" placeholder="********" className="mt-1" />
+                </div>
+                <Button type="submit" variant="default" className="w-full mt-4">Login</Button>
+              </form>
+              <Separator className="my-4" />
+              <Button onClick={handleGoogleSignIn} variant="outline" className="w-full">Sign in with Google</Button>
+            </CardContent>
+          </Card>
+        ) : (
+          // Welcome Card for logged in user
+          <Card className="w-full max-w-md p-8 bg-card shadow-lg rounded-lg">
+            <CardHeader>
+              <h1 className="text-2xl font-bold text-center mb-2">Welcome, {user.displayName.split(' ')[0]}</h1>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-sm text-muted-foreground mb-4">{user.email}</p>
+              <Button onClick={handleSignOut} variant="destructive" className="w-full">Sign Out</Button>
+              {redirecting && (
+                <div className="mt-4 text-center">
+                  <p className="text-sm">Redirecting in <span>{countdown}</span> seconds...</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
-        
+      </div>
+
+      {/* DaisyUI vertical splitter */}
+      <div className="divider divider-vertical divider-accent"></div>
+
+      {/* Right side - Image */}
+      <div className="w-1/2 hidden md:flex items-center justify-center">
+        <Image
+          src="/amogus.png"
+          alt="Among Us"
+          width={600}
+          height={600}
+          className="object-contain"
+        />
       </div>
     </div>
   );
