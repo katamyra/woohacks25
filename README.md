@@ -1,6 +1,6 @@
 # BuzzLine
 
-The Emergency Assistance App is a Next.js–based platform designed to support users during emergencies (e.g., fire hazards) by providing targeted recommendations for essential amenities, safe travel routes, and real‐time mapping overlays. The application integrates multiple Google services (Gemini AI, Maps, Places, Directions, Dialogflow) and Firebase for authentication and data persistence, as well as external data sources like NASA's Landsat API.
+A Next.js-based platform designed to support users during emergencies (e.g., fire hazards) by providing targeted recommendations, safe travel routes, and real-time mapping overlays for walakabilities.
 
 ---
 
