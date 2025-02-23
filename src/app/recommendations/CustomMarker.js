@@ -5,11 +5,11 @@ import { OverlayView } from "@react-google-maps/api";
 const getOpacity = (confidence) => {
   switch (confidence) {
     case "H":
-      return 1.0;
-    case "M":
       return 0.5;
+    case "M":
+      return 0.25;
     case "L":
-      return 0.2;
+      return 0.1;
     default:
       return 0.5;
   }
@@ -88,4 +88,4 @@ const CustomMarker = ({ lat, lng, confidence, acqDate, acqTime }) => {
   );
 };
 
-export default CustomMarker;
+export default CustomMarker;  
