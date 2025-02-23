@@ -219,6 +219,8 @@ export default function MapOverlay({ landsatData, recommendations, destination }
       console.log(`distance (meters): ${routeData.distance}`);
     }
   }, [destination, map, currentUserLocation, avoidPolygons]);
+    }
+  }, [destination, map, window.google]);
 
   async function fetchCsvAndParse(url) {
     const response = await fetch(url);
