@@ -246,10 +246,14 @@ const Gallery = ({
       const newEtaMap = {};
       for (const rec of recommendations) {
         try {
+          const lat = rec.geometry.location.lat;
+          const lng = rec.geometry  .location.lng;
+          const destination = { lat: lat, lng: lng };
+
           const routeData = await fetchSafeRouteORS(
             userLocation,
-            { lat: rec.geometry.location.lat, lng: rec.geometry.location.lng },
-            null, // pass firePolygonsCollection if available
+            destination,
+            localStorage.getItem("firePolygonsCollection"),
             userLocation
           );
           // Initialize weightedWalkability as zero.
@@ -290,6 +294,8 @@ const Gallery = ({
         : 0,
     }));
   }, [recommendations, walkabilityData, etaMap]);
+  console.log("enhancedRecommendations", enhancedRecommendations);
+  console.log("etaMap", etaMap);
 
   // Fixed filter groups (in desired order)
   const fixedFilters = [
@@ -336,6 +342,7 @@ const Gallery = ({
   }, [enhancedRecommendations, selectedFilters]);
 
   // Apply the selected sort order on the filtered recommendations.
+  console.log("filteredRecommendations", filteredRecommendations);
   const sortedRecommendations = useMemo(() => {
     let recs = [...filteredRecommendations];
     if (selectedSort === "ETA") {
