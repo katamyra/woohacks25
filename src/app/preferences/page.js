@@ -97,7 +97,7 @@ export default function Preferences() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Basic Needs Card */}
-          <div className="card bg-gray-800/50 shadow-xl">
+          <div className="card bg-gray-900/50 shadow-xl">
             <div className="card-body">
               <h2 className="card-title text-gray-100">Basic Needs</h2>
               <div className="form-control">
@@ -118,7 +118,7 @@ export default function Preferences() {
           </div>
 
           {/* Transportation Card */}
-          <div className="card bg-gray-800/50 shadow-xl">
+          <div className="card bg-gray-900/50 shadow-xl">
             <div className="card-body">
               <h2 className="card-title text-gray-100">Transportation</h2>
               <select 
@@ -157,7 +157,7 @@ export default function Preferences() {
           </div>
 
           {/* Household Information Card */}
-          <div className="card bg-gray-800/50 shadow-xl">
+          <div className="card bg-gray-900/50 shadow-xl">
             <div className="card-body">
               <h2 className="card-title text-gray-100">Household Information</h2>
               <div className="grid grid-cols-2 gap-2">
@@ -180,7 +180,7 @@ export default function Preferences() {
           </div>
 
           {/* Medical Needs Card */}
-          <div className="card bg-gray-800/50 shadow-xl">
+          <div className="card bg-gray-900/50 shadow-xl">
             <div className="card-body">
               <h2 className="card-title text-gray-100">Medical & Special Needs</h2>
               <textarea

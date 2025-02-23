@@ -53,12 +53,23 @@ module.exports = {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
+  			},
+  			success: {
+  				DEFAULT: 'hsl(120, 100%, 40%)',
+  				foreground: 'hsl(120, 100%, 95%)'
   			}
   		}
   	}
   },
   plugins: [require("daisyui"), require("tailwindcss-animate")],
   daisyui: {
-    themes: ["dark"],
+    themes: [{
+      dark: {
+        ...require("daisyui/src/theming/themes")["[data-theme=dark]"],
+        primary: "#0ea5e9", // Tailwind sky-500
+        "primary-focus": "#0284c7", // Tailwind sky-600
+        "primary-content": "#ffffff",
+      },
+    }],
   },
-} 
+} 	
