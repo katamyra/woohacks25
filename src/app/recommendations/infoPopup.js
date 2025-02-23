@@ -26,6 +26,10 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
     fetchUserData();
   }, [user]);
 
+  useEffect(() => {
+    console.log("Route Info", routeInfo);
+  }, [routeInfo]);
+
   // Function to handle setting the safe route
   const handleSetSafeRoute = () => {
     const firePolygonsCollection = localStorage.getItem("avoidPolygons");
