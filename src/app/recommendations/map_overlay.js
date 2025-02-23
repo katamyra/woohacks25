@@ -5,6 +5,8 @@ import * as turf from "@turf/turf";
 import CustomMarker from "./CustomMarker";
 import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
 import { useAuth } from "@/context/AuthContext";
+import { fetchSafeRouteORS } from '@/utils/fetchSafeRouteORS';
+import { decodeORSGeometry } from '@/utils/decodeORSGeometry';
 
 function getColor(value) {
   const score = Math.max(0, Math.min(1, value));
@@ -35,7 +37,7 @@ const getOpacity = (confidence) => {
   }
 };
 
-export default function MapOverlay({ landsatData, recommendations }) {
+export default function MapOverlay({ landsatData, recommendations, userLocation }) {
   const { user } = useAuth();
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -94,39 +96,44 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [map, landsatData]);
 
-  // --- Turf Integration: Create Buffer Polygons around each fire marker ---
-  const firePolygons = useMemo(() => {
-    if (!landsatData || landsatData.length === 0) return [];
-    return landsatData.map((fire) => {
-      const point = turf.point([parseFloat(fire.lng), parseFloat(fire.lat)]);
-      const buffered = turf.buffer(point, 1000, { units: "meters" });
-      return buffered;
-    });
-  }, [landsatData]);
+  // 화재 폴리곤 배열 생성
+  const firePolygons = landsatData.map(dataPoint => {
+    const point = turf.point([dataPoint.lng, dataPoint.lat]);
+    const polygon = turf.buffer(point, 1, { units: 'kilometers' });
+
+    return polygon.geometry.coordinates; // Return the coordinates of the polygon
+  });
+
+  // MultiPolygon 형식으로 래핑
+  const avoidPolygons = {
+    type: "MultiPolygon",
+    coordinates: firePolygons.map(coords => coords) // Directly use coords without additional wrapping
+  };
+
+  // 예시로 사용
+  const requestBody = {
+    coordinates: [
+      [8.681495, 49.41461],
+      [8.686507, 49.41943],
+      [8.687872, 49.420318]
+    ],
+    options: {
+      avoid_polygons: avoidPolygons // Use the MultiPolygon
+    }
+  };
 
   // --- Get Route Info using fetchRouteInfo ---
   const handleSafeRoute = async () => {
     if (!map || !user) return;
 
-    // Define approximate coordinates for origin and destination.
-    const originCoords = { lat: 33.760, lng: -84.392 }; // Centennial Olympic Park
-    const destinationCoords = { lat: 33.775, lng: -84.396 }; // Georgia Institute of Technology
+    const originCoords = { lat: 33.6522, lng: -84.3394 }; // 출발지
+    const destinationCoords = { lat: 33.775, lng: -84.396 }; // 목적지
 
-    let safeWaypoint = null;
-    if (firePolygons.length) {
-      const firePoly = firePolygons[0];
-      const line = turf.lineString(firePoly.geometry.coordinates[0]);
-      const lineLength = turf.length(line, { units: "meters" });
-      const samplePoint = turf.along(line, lineLength / 2, { units: "meters" });
-      const samplePointCoords = samplePoint.geometry.coordinates;
-      safeWaypoint = { lat: samplePointCoords[1], lng: samplePointCoords[0] };
-      // No range check now—any computed safeWaypoint is allowed.
-    }
-
-    const routeData = await fetchRouteInfo(originCoords, destinationCoords, safeWaypoint, user);
+    // Pass an empty array or no waypoints at all:
+    const routeData = await fetchRouteInfo(originCoords, destinationCoords, [], user);
     console.log("Route Data:", routeData);
-    setRouteInfo(routeData);
-
+    
+    // Render the route, etc.
     if (routeData.encodedPolyline && window.google && map) {
       const path = window.google.maps.geometry.encoding.decodePath(routeData.encodedPolyline);
       new window.google.maps.Polyline({
@@ -135,6 +142,33 @@ export default function MapOverlay({ landsatData, recommendations }) {
         strokeColor: "#4285F4",
         strokeWeight: 4,
       });
+    }
+  };
+
+  const handleSafeRouteORS = async () => {
+    if (!map || !user) return;
+
+    const originCoords = { lat: 33.6522, lng: -84.3394 };
+    const destinationCoords = { lat: 33.775, lng: -84.396 };
+
+    // ORS 함수 호출
+    const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons, userLocation);
+    console.log("ORS Route Data:", routeData);
+    
+    if (routeData.geometry && window.google && map) {
+      const pathCoordinates = decodeORSGeometry(routeData.geometry);
+      
+      // 안전 경로에 대한 새로운 폴리라인을 맵에 생성하고 표시
+      new window.google.maps.Polyline({
+        map: map,
+        path: pathCoordinates,
+        strokeColor: "#4285F4",
+        strokeWeight: 4,
+      });
+      
+      // ETA 및 거리 표시 (예: 콘솔 또는 UI에)
+      console.log(`ETA (초): ${routeData.eta}`);
+      console.log(`거리 (미터): ${routeData.distance}`);
     }
   };
 
@@ -276,8 +310,8 @@ export default function MapOverlay({ landsatData, recommendations }) {
           </div>
         )}
 
-        <button onClick={handleSafeRoute} style={commonStyle}>
-          Get Safe Route
+        <button onClick={handleSafeRouteORS} style={commonStyle}>
+          Get Safe Route (ORS)
         </button>
       </div>
 
@@ -302,7 +336,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
         {firePolygons.map((poly, idx) => (
           <Polygon
             key={idx}
-            paths={poly.geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng }))}
+            paths={poly.map(([lng, lat]) => ({ lat, lng }))}
             options={{
               fillColor: "red",
               fillOpacity: 0.35,

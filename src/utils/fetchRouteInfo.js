@@ -2,8 +2,9 @@
 
 import axios from "axios";
 import { firestoreService } from "@/firebase/services/firestore";
+import * as turf from "@turf/turf";
 
-export const fetchRouteInfo = async (origin, destination, safeWaypoint, user) => {
+export const fetchRouteInfo = async (origin, destination, safeWaypoints, user, firePolygons) => {
   try {
     if (!user || !user.uid) {
       throw new Error("User is not defined or missing uid");
@@ -67,14 +68,14 @@ export const fetchRouteInfo = async (origin, destination, safeWaypoint, user) =>
     }
     
     // If a safeWaypoint is provided, add it as an intermediate waypoint.
-    if (
-      safeWaypoint &&
-      typeof safeWaypoint.lat === "number" &&
-      typeof safeWaypoint.lng === "number"
-    ) {
-      requestBody.intermediates = [
-        { location: { latLng: { latitude: safeWaypoint.lat, longitude: safeWaypoint.lng } } },
-      ];
+    const safeWaypointsArray = []; 
+
+
+    // Map safeWaypoints to the expected format if any safe points exist:
+    if (safeWaypointsArray.length > 0) {
+      requestBody.intermediates = safeWaypointsArray.map((point) => ({
+        location: { latLng: { latitude: point.lat, longitude: point.lng } },
+      }));
     }
     
     // Log the payload to help with debugging.
