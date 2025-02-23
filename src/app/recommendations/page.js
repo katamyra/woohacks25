@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { firestoreService } from '@/firebase/services/firestore';
 import { fetchRecommendations } from '@/utils/fetchRecommendations';
 import axios from 'axios';
+import { fetchSafeRouteORS } from '@/utils/fetchSafeRouteORS';
 
 const RecommendationsPage = () => {
   const [galleryExpanded, setGalleryExpanded] = useState(false);
@@ -94,10 +95,9 @@ const RecommendationsPage = () => {
   }
 
   // Define the "altnata" location as Atlanta's coordinates
-  const targetLat = 33.7490; // 애틀랜타의 위도
-  const targetLng = -84.3880; // 애틀랜타의 경도
-  const thresholdDistanceKm = 50; // 예: 50km 이내의 데이터 포인트만 포함
-
+  const targetLat = 33.7490; 
+  const targetLng = -84.3880; 
+  const thresholdDistanceKm = 50; 
   useEffect(() => {
     const fetchLandsatData = async () => {
       try {
@@ -118,7 +118,7 @@ const RecommendationsPage = () => {
           return distance < thresholdDistanceKm;
         });
 
-        setLandsatData(filteredData); // 필터링된 데이터 설정
+        setLandsatData(filteredData); 
         console.log('Filtered Landsat Data:', filteredData);
       } catch (error) {
         console.error('Error fetching LANDSAT data:', error);
@@ -187,6 +187,7 @@ const RecommendationsPage = () => {
           <MapOverlay 
             landsatData={landsatData} 
             recommendations={recommendations} 
+            userLocation={{ lat, lng }}
           />
         </div>
       )}

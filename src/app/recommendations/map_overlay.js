@@ -5,6 +5,8 @@ import * as turf from "@turf/turf";
 import CustomMarker from "./CustomMarker";
 import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
 import { useAuth } from "@/context/AuthContext";
+import { fetchSafeRouteORS } from '@/utils/fetchSafeRouteORS';
+import { decodeORSGeometry } from '@/utils/decodeORSGeometry';
 
 function getColor(value) {
   const score = Math.max(0, Math.min(1, value));
@@ -35,7 +37,7 @@ const getOpacity = (confidence) => {
   }
 };
 
-export default function MapOverlay({ landsatData, recommendations }) {
+export default function MapOverlay({ landsatData, userLocation }) {
   const { user } = useAuth();
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -43,8 +45,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [routeInfo, setRouteInfo] = useState(null);
   const [directions, setDirections] = useState(null);
-  // New state for the user's current location
-  const [userLocation, setUserLocation] = useState(null);
+  const [currentUserLocation, setCurrentUserLocation] = useState(userLocation);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -56,19 +57,17 @@ export default function MapOverlay({ landsatData, recommendations }) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          setCurrentUserLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
         },
         (error) => {
           console.error("Error retrieving user location:", error);
-          setUserLocation({ lat: 40.8117, lng: -81.9308 });
         }
       );
     } else {
       console.error("Geolocation not supported by this browser.");
-      setUserLocation({ lat: 40.8117, lng: -81.9308 });
     }
   }, []);
 
@@ -100,13 +99,13 @@ export default function MapOverlay({ landsatData, recommendations }) {
         sumLng += parseFloat(point.lng);
       });
       return { lat: sumLat / landsatData.length, lng: sumLng / landsatData.length };
-    } else if (userLocation) {
-      return userLocation;
+    } else if (currentUserLocation) {
+      return currentUserLocation;
     } else {
       // Fallback default if neither landsatData nor geolocation is available
       return { lat: 40.8117, lng: -81.9308 };
     }
-  }, [landsatData, userLocation]);
+  }, [landsatData, currentUserLocation]);
 
   useEffect(() => {
     if (map && landsatData && landsatData.length > 0 && window.google) {
@@ -118,38 +117,42 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [map, landsatData]);
 
-  // --- Turf Integration: Create Buffer Polygons around each fire marker ---
-  const firePolygons = useMemo(() => {
-    if (!landsatData || landsatData.length === 0) return [];
-    return landsatData.map((fire) => {
-      const point = turf.point([parseFloat(fire.lng), parseFloat(fire.lat)]);
-      const buffered = turf.buffer(point, 1000, { units: "meters" });
-      return buffered;
-    });
-  }, [landsatData]);
+  const firePolygons = landsatData.map(dataPoint => {
+    const point = turf.point([dataPoint.lng, dataPoint.lat]);
+    const polygon = turf.buffer(point, 1, { units: 'kilometers' });
+
+    return polygon.geometry.coordinates; // Return the coordinates of the polygon
+  });
+
+  // wrapping MultiPolygon
+  const avoidPolygons = {
+    type: "MultiPolygon",
+    coordinates: firePolygons.map(coords => coords) 
+  };
+
+  const requestBody = {
+    coordinates: [
+      [8.681495, 49.41461],
+      [8.686507, 49.41943],
+      [8.687872, 49.420318]
+    ],
+    options: {
+      avoid_polygons: avoidPolygons // Use the MultiPolygon
+    }
+  };
 
   // --- Get Route Info using fetchRouteInfo ---
   const handleSafeRoute = async () => {
     if (!map || !user) return;
 
-    // Define approximate coordinates for origin and destination.
-    const originCoords = { lat: 33.760, lng: -84.392 }; // Centennial Olympic Park
-    const destinationCoords = { lat: 33.775, lng: -84.396 }; // Georgia Institute of Technology
+    const originCoords = { lat: 33.6522, lng: -84.3394 }; // 출발지
+    const destinationCoords = { lat: 33.775, lng: -84.396 }; // 목적지
 
-    let safeWaypoint = null;
-    if (firePolygons.length) {
-      const firePoly = firePolygons[0];
-      const line = turf.lineString(firePoly.geometry.coordinates[0]);
-      const lineLength = turf.length(line, { units: "meters" });
-      const samplePoint = turf.along(line, lineLength / 2, { units: "meters" });
-      const samplePointCoords = samplePoint.geometry.coordinates;
-      safeWaypoint = { lat: samplePointCoords[1], lng: samplePointCoords[0] };
-    }
-
-    const routeData = await fetchRouteInfo(originCoords, destinationCoords, safeWaypoint, user);
+    // Pass an empty array or no waypoints at all:
+    const routeData = await fetchRouteInfo(originCoords, destinationCoords, [], currentUserLocation);
     console.log("Route Data:", routeData);
-    setRouteInfo(routeData);
-
+    
+    // Render the route, etc.
     if (routeData.encodedPolyline && window.google && map) {
       const path = window.google.maps.geometry.encoding.decodePath(routeData.encodedPolyline);
       new window.google.maps.Polyline({
@@ -158,6 +161,31 @@ export default function MapOverlay({ landsatData, recommendations }) {
         strokeColor: "#4285F4",
         strokeWeight: 4,
       });
+    }
+  };
+
+  const handleSafeRouteORS = async () => {
+    if (!map || !user) return;
+
+    const originCoords = { lat: 33.6522, lng: -84.3394 };
+    const destinationCoords = { lat: 33.775, lng: -84.396 };
+
+    // ORS function call
+    const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons, currentUserLocation);
+    console.log("ORS Route Data:", routeData);
+    
+    if (routeData.geometry && window.google && map) {
+      const pathCoordinates = decodeORSGeometry(routeData.geometry);
+      
+      new window.google.maps.Polyline({
+        map: map,
+        path: pathCoordinates,
+        strokeColor: "#4285F4",
+        strokeWeight: 4,
+      });
+      
+      console.log(`ETA (seconds): ${routeData.eta}`);
+      console.log(`distance (meters): ${routeData.distance}`);
     }
   };
 
@@ -302,8 +330,8 @@ export default function MapOverlay({ landsatData, recommendations }) {
           </div>
         )}
 
-        <button onClick={handleSafeRoute} style={commonStyle}>
-          Get Safe Route
+        <button onClick={handleSafeRouteORS} style={commonStyle}>
+          Get Safe Route (ORS)
         </button>
       </div>
 
@@ -328,7 +356,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
         {firePolygons.map((poly, idx) => (
           <Polygon
             key={idx}
-            paths={poly.geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng }))}
+            paths={poly.map(([lng, lat]) => ({ lat, lng }))}
             options={{
               fillColor: "red",
               fillOpacity: 0.35,
