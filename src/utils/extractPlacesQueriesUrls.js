@@ -1,18 +1,28 @@
-import axios from 'axios';
+// utils/extractPlacesQueriesUrls.js
+import { buildNearbySearchUrl } from './urlBuilder';
 
-//Extract all Url's from text
-export function extractUrls(text) {
-    const urlRegex = /https?:\/\/[^\s]+/g;
-    return text.match(urlRegex) || [];
-}
+export function extractPlacesQueriesUrls({ lat, lng }) {
+  const location = `${lat},${lng}`;
+  const radius = 52800; // e.g., 33 miles (52800 meters)
+  const queries = [
+    { type: 'hospital', keyword: 'urgent care OR medical clinic' },
+    { type: 'lodging', keyword: 'homeless shelter OR evacuation center' },
+    { type: 'food', keyword: 'food bank OR soup kitchen OR water station' },
+    { type: 'pharmacy', keyword: 'pharmacy' },
+    { type: 'grocery_or_supermarket', keyword: 'grocery store OR supermarket' },
+    { type: 'clothing_store', keyword: 'clothing store' },
+    { type: 'transit_station', keyword: 'bus station OR train station' },
+  ];
 
-//Sends multiple GET requests with an array of Url query strings
-export async function sendMultipleRequests(urls) {
-    const placesApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    const validUrls = urls.map((url) =>
-        url.replace("realAPIKey", placesApiKey)  // Replace the placeholder
-    );
-    const requests = validUrls.map((url) => axios.get(url));
-  const responses = await Promise.all(requests);
-  return responses.map((response) => response.data);
+  // Build a URL for each query using the helper.
+  const urls = queries.map(query =>
+    buildNearbySearchUrl({
+      location,
+      radius,
+      type: query.type,
+      keyword: query.keyword,
+    })
+  );
+
+  return urls;
 }
