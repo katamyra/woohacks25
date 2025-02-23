@@ -14,7 +14,7 @@ export function Header() {
     <div className="navbar bg-gray-900">
       <div className="navbar-start">
         <div className="dropdown">
-          <div tabIndex={0} role="button" className="btn btn-ghost text-white bg-indigo-600">
+          <div tabIndex={0} role="button" className="btn btn-ghost text-white bg-blue-500">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5"
@@ -42,13 +42,13 @@ export function Header() {
               </button>
             </li>
             <li>
-              <button onClick={() => handleNavigation('/recommendations')}>
-                Recommendations
+              <button onClick={() => handleNavigation('/review')}>
+                Review Information
               </button>
             </li>
             <li>
-              <button onClick={() => handleNavigation('/review')}>
-                Review Information
+              <button onClick={() => handleNavigation('/recommendations')}>
+                Recommendations
               </button>
             </li>
           </ul>
@@ -59,7 +59,7 @@ export function Header() {
       </div>
       <div className="navbar-end">
         <div className="dropdown dropdown-end">
-          <label tabIndex={0} role="button" className="btn btn-ghost  bg-indigo-600 text-white">
+          <label tabIndex={0} role="button" className="btn btn-ghost  bg-blue-500 text-white">
             <div className="indicator">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
