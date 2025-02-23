@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import { useAuth } from '@/context/AuthContext';
 import { firestoreService } from '@/firebase/services/firestore';
@@ -9,7 +9,28 @@ export default function AddressPage() {
     const { user } = useAuth();
     const router = useRouter();
     const [address, setAddress] = useState('');
-    const [location, setLocation] = useState({ lat: 37.7749, lng: -122.4194 }); // Default to San Francisco
+    const [location, setLocation] = useState(null); // Initialize with null
+
+    // Use effect to set the initial location to the user's current location
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    setLocation({ lat: latitude, lng: longitude });
+                },
+                () => {
+                    alert('Unable to retrieve your location');
+                    // Fallback to a default location if geolocation fails
+                    setLocation({ lat: 37.7749, lng: -122.4194 }); // San Francisco
+                }
+            );
+        } else {
+            alert('Geolocation is not supported by this browser.');
+            // Fallback to a default location
+            setLocation({ lat: 37.7749, lng: -122.4194 }); // San Francisco
+        }
+    }, []);
 
     const handleAddressChange = (event) => {
         setAddress(event.target.value);
@@ -111,17 +132,19 @@ export default function AddressPage() {
                     Save & Continue
                 </button>
             </div>
-            <div className="w-1/2">
-                <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
-                    <GoogleMap
-                        mapContainerStyle={{ width: '100%', height: '100%' }}
-                        center={location}
-                        zoom={14}
-                    >
-                        <Marker position={location} />
-                    </GoogleMap>
-                </LoadScript>
-            </div>
+            {location && (
+                <div className="w-1/2">
+                    <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
+                        <GoogleMap
+                            mapContainerStyle={{ width: '100%', height: '100%' }}
+                            center={location}
+                            zoom={14}
+                        >
+                            <Marker position={location} />
+                        </GoogleMap>
+                    </LoadScript>
+                </div>
+            )}
         </div>
     );
 }
