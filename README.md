@@ -1,4 +1,4 @@
-# Emergency Assistance App
+# Lifelife
 
 The Emergency Assistance App is a Next.js–based platform designed to support users during emergencies (e.g., fire hazards) by providing targeted recommendations for essential amenities, safe travel routes, and real‐time mapping overlays. The application integrates multiple Google services (Gemini AI, Maps, Places, Directions, Dialogflow) and Firebase for authentication and data persistence, as well as external data sources like NASA's Landsat API.
 
@@ -98,14 +98,10 @@ This project is built using Next.js and modern React tools. It assists users aff
 
 ### Gemini Service
 
-- **File:** `src/services/gemini.js`
-- **Purpose:**  
-  Provides two main functions to interact with Google's Generative AI (Gemini).
-- **Functions:**
-  - `generateContent(prompt)`  
-    Sends a text prompt to the Gemini model and returns the generated content.
-  - `generateChatContent(messages)`  
-    Initiates a chat session with Gemini using a series of messages and returns an AI-generated response.
+**File:** `src/services/gemini.js`
+
+**Purpose:**  
+This file provides two functions that connect with Google’s Generative AI (Gemini). The first function, `generateContent`, takes a text prompt, sends it to Gemini, and returns the AI-generated content. The second function, `generateChatContent`, initiates a chat session by supplying a series of messages and then returns the AI’s responses.
 
 ---
 
@@ -113,25 +109,17 @@ This project is built using Next.js and modern React tools. It assists users aff
 
 #### MapOverlay
 
-- **File:** `src/app/recommendations/map_overlay.js`
-- **Purpose:**  
-  Renders an interactive Google Map displaying environmental overlays such as fire polygons (generated using Turf.js) and user-specific markers.
-- **Key Features:**  
-  - Uses the Google Maps JavaScript API to load and configure the map.
-  - Automatically determines the map center based on Landsat data or the user's geolocation.
-  - Adds event listeners to display walkability scores on mouse hover.
-  - Implements toggling to show/hide the overlay for walkability data.
+**File:** `src/app/recommendations/map_overlay.js`
+
+**Purpose:**  
+The MapOverlay component displays an interactive Google Map, which includes environmental overlays (such as fire polygons created through Turf.js) and various markers. It relies on the Google Maps JavaScript API to load and configure the map, determining its center based on Landsat data or the user's geolocation. It also listens for mouse hover events to show walkability scores and provides a toggle for enabling or disabling walkability overlays.
 
 #### CustomMarker
 
-- **File:** `src/app/recommendations/CustomMarker.js`
-- **Purpose:**  
-  Displays custom markers on the Google Map with visual cues based on data confidence.
-- **Key Functions:**
-  - `getColor(confidence)`  
-    Returns a specific color (red, orange, yellow, etc.) based on the marker's confidence.
-- **Additional Info:**  
-  Shows a tooltip with details (confidence level, acquisition date, time) when hovered over.
+**File:** `src/app/recommendations/CustomMarker.js`
+
+**Purpose:**  
+This component is used to place custom markers on the map. The `getColor(confidence)` function selects a color (red, orange, yellow, etc.) according to the marker’s confidence level. When hovering over a marker, a tooltip appears with details like confidence level, acquisition date, and time.
 
 ---
 
@@ -139,33 +127,29 @@ This project is built using Next.js and modern React tools. It assists users aff
 
 #### Fetch Recommendations
 
-- **File:** `src/utils/fetchRecommendations.js`
-- **Purpose:**  
-  Constructs a detailed review prompt describing the user's scenario and preferences to generate recommendations.
-- **Functions:**
-  - `sortAmenities(rawResults)` (internal helper)  
-    Sorts the raw amenities ensuring at least three items per mandatory category (Healthcare, Shelter, Food/Water) with a maximum of 15 overall.
+**File:** `src/utils/fetchRecommendations.js`
+
+**Purpose:**  
+This utility composes a detailed review prompt based on the user’s situation and preferences in order to generate tailored recommendations. It also has an internal helper function, `sortAmenities(rawResults)`, which ensures that certain critical categories (Healthcare, Shelter, Food/Water) have at least three amenities each and caps the total number at 15.
 
 #### Gallery
 
-- **File:** `src/app/recommendations/gallery.js`
-- **Purpose:**  
-  Displays the recommended amenities in a gallery format allowing users to sort and filter results.
-- **Key Functions:**
-  - `getFilterCategories(types)`  
-    Converts raw Google Places API types into human-readable filter groups (Health, Food, Retail, Shelter, Civic, etc.).
-- **Features:**  
-  Enhances recommendations with dummy ETA and walkability scores, and supports dropdown-based filtering and sorting.
+**File:** `src/app/recommendations/gallery.js`
+
+**Purpose:**  
+The gallery component displays recommended amenities in a visually organized layout, allowing for sorting and filtering. A key function, `getFilterCategories(types)`, converts raw Google Places API types into human-readable groups (Health, Food, Retail, Shelter, Civic, etc.). The gallery also adds placeholder ETA and walkability data, and supports dropdown-based filtering and sorting.
 
 ---
 
 ### Dialogflow Integration
 
-- **File:** `src/services/dialogflow.js`
-- **Purpose:**  
-  Initializes the Dialogflow SessionsClient using project credentials for conversational interaction.
-- **Usage:**  
-  The client is used to integrate real-time chatbot functionality into the application.
+**File:** `src/services/dialogflow.js`
+
+**Purpose:**  
+This file initializes the Dialogflow SessionsClient using project credentials and provides a convenient way for the application to manage conversational interactions.
+
+**Usage:**  
+Any feature that requires real-time chatbot functionality can use this client.
 
 ---
 
@@ -173,30 +157,24 @@ This project is built using Next.js and modern React tools. It assists users aff
 
 #### Firestore Service
 
-- **File:** `src/firebase/services/firestore.js`
-- **Purpose:**  
-  Provides methods to interact with Firestore for testing the connection and performing CRUD operations.
-- **Key Functions:**
-  - `getUserData(uid)`  
-    Retrieves a user document based on a given UID.
-  - `setUser(uid, userData)`  
-    Creates or updates a user document with merging.
-  - `updateUser(uid, data)`  
-    Updates existing user data; logs and throws errors if the update fails.
+**File:** `src/firebase/services/firestore.js`
+
+**Purpose:**  
+This service offers methods to connect to Firestore for reading and writing data, as well as verifying the database connection. It includes functions like `getUserData(uid)` to retrieve documents by UID, `setUser(uid, userData)` to create or update user records, and `updateUser(uid, data)` to modify existing user fields, logging and throwing errors if anything goes wrong.
 
 #### Firebase Configuration
 
-- **File:** `src/firebase/config.js`
-- **Purpose:**  
-  Initializes the Firebase application using environment variables and exports the Firestore database (`db`) and authentication service.
+**File:** `src/firebase/config.js`
+
+**Purpose:**  
+Here, the Firebase app is initialized with environment variables. This file exports both the Firestore database (`db`) and the Firebase authentication service for use throughout the application.
 
 #### Authentication Service
 
-- **File:** `src/firebase/services/auth.js`
-- **Purpose:**  
-  Handles user authentication methods such as signing in with Google and signing out.
-- **Export:**  
-  An `authService` instance is provided for use throughout the app.
+**File:** `src/firebase/services/auth.js`
+
+**Purpose:**  
+This service handles user authentication tasks, such as signing in with Google and signing out. It exports an `authService` instance that other parts of the app can leverage for user authentication flows.
 
 ---
 
@@ -204,21 +182,24 @@ This project is built using Next.js and modern React tools. It assists users aff
 
 #### Landsat API
 
-- **File:** `src/pages/api/landsat.js`
-- **Purpose:**  
-  Fetches CSV data from NASA's MODAPS API for LANDSAT and converts it into JSON format, providing location and confidence data for mapping.
+**File:** `src/pages/api/landsat.js`
+
+**Purpose:**  
+This endpoint fetches CSV data from NASA's MODAPS API for LANDSAT, converts it into JSON, and provides location and confidence data suitable for mapping.
 
 #### Generate Explanations API
 
-- **File:** `src/pages/api/generate-explanations.js`
-- **Purpose:**  
-  Accepts a POST request containing a user review and place details, then constructs a prompt and leverages Gemini's `generateContent` function to generate a concise explanation for why a particular amenity was recommended.
+**File:** `src/pages/api/generate-explanations.js`
+
+**Purpose:**  
+This endpoint listens for a POST request containing the user’s review and place details, constructs a detailed prompt, and uses the Gemini `generateContent` function to create a concise explanation about why an amenity was recommended.
 
 #### Recommend Places API
 
-- **File:** `src/pages/api/recommend-places.js`
-- **Purpose:**  
-  Processes a POST request with a review text to generate query URLs (using Gemini), extracts those URLs with a utility function, and sends multiple requests to the Google Places API. The endpoint then returns the aggregated results.
+**File:** `src/pages/api/recommend-places.js`
+
+**Purpose:**  
+Upon receiving a POST request with a user review, this endpoint uses Gemini to generate Places query URLs, extracts those URLs using a helper function, and queries the Google Places API multiple times. It consolidates the results before returning them to the client.
 
 ---
 
@@ -226,38 +207,31 @@ This project is built using Next.js and modern React tools. It assists users aff
 
 #### Fetch Safe Route
 
-- **File:** `src/utils/fetchSafeRouteORS.js`
-- **Purpose:**  
-  Computes a safe driving route using the OpenRouteService API while avoiding areas (fire polygons) marked as unsafe.
-- **Key Features:**  
-  Constructs the request body with user location and avoidance polygons, then returns summary details like ETA, distance, and route geometry.
+**File:** `src/utils/fetchSafeRouteORS.js`
+
+**Purpose:**  
+This utility calculates a safe driving route via the OpenRouteService API, avoiding specified areas (such as fire polygons). It assembles a request body based on the user’s location and unsafe polygons, then returns information like estimated travel time, distance, and route geometry.
 
 #### Fetch Route Information
 
-- **File:** `src/utils/fetchRouteInfo.js`
-- **Purpose:**  
-  Retrieves detailed route information from the Google Maps Directions API based on user preferences and computed travel mode.
-- **Flow:**  
-  - Retrieves user preferences from Firestore.
-  - Determines travel mode (driving, walking, transit, etc.).
-  - Constructs a request payload and returns details such as ETA, distance, and encoded polyline.
+**File:** `src/utils/fetchRouteInfo.js`
+
+**Purpose:**  
+This function collects route details from the Google Maps Directions API. It factors in user preferences and travel mode (driving, walking, transit, etc.) and returns crucial data like ETA, distance, and the encoded polyline.
 
 #### Extract Places Query URLs
 
-- **File:** `src/utils/extractPlacesQueriesUrls.js`
-- **Purpose:**  
-  Provides utility functions to extract URLs from Gemini's output and send multiple GET requests to the Google Places API.
-- **Key Functions:**
-  - `extractUrls(text)`  
-    Uses a regular expression to extract all URL strings from a block of text.
-  - `sendMultipleRequests(urls)`  
-    Replaces the "YOUR_API_KEY" placeholder with the actual API key and sends concurrent GET requests, returning the response data.
+**File:** `src/utils/extractPlacesQueriesUrls.js`
+
+**Purpose:**  
+By parsing Gemini’s output, this utility finds URLs within the text and sends multiple GET requests to the Google Places API. It contains functions like `extractUrls(text)` for regex-based URL detection and `sendMultipleRequests(urls)`, which replaces a placeholder with a real API key and then makes simultaneous requests.
 
 #### Decode ORS Geometry
 
-- **File:** `src/utils/decodeORSGeometry.js`
-- **Purpose:**  
-  Converts a LineString geometry from an ORS response into an array of coordinate objects with `lat` and `lng` properties for mapping.
+**File:** `src/utils/decodeORSGeometry.js`
+
+**Purpose:**  
+This file converts a LineString geometry from an OpenRouteService response into a list of coordinate objects (with `lat` and `lng` keys) so that the route can be properly rendered on the map.
 
 ---
 
@@ -265,20 +239,17 @@ This project is built using Next.js and modern React tools. It assists users aff
 
 #### Notification Context
 
-- **File:** `src/context/NotificationContext.jsx`
-- **Purpose:**  
-  Implements a global notifications system.
-- **Key Functions:**
-  - `addNotification(notification)`  
-    Adds a new alert to the notifications list.
-  - `clearNotifications()`  
-    Clears all currently set notifications.
+**File:** `src/context/NotificationContext.jsx`
+
+**Purpose:**  
+This component sets up a global notifications system that can be accessed anywhere in the application. The `addNotification(notification)` function registers a new alert, while `clearNotifications()` removes all current alerts.
 
 #### Authentication Context
 
-- **File:** `src/context/AuthContext.js`
-- **Purpose:**  
-  Provides the authentication state (user data and loading status) throughout the application via the `useAuth()` hook.
+**File:** `src/context/AuthContext.js`
+
+**Purpose:**  
+This context supplies authentication information (user data and loading status) across the entire app via the `useAuth()` hook, simplifying login state management.
 
 ---
 
@@ -286,72 +257,46 @@ This project is built using Next.js and modern React tools. It assists users aff
 
 #### Button Component
 
-- **File:** `src/components/ui/button.jsx`
-- **Purpose:**  
-  A reusable, style-configurable button component.
-- **Features:**  
-  Uses Tailwind CSS along with class merging utilities (`clsx` and `twMerge`) to support various styles and sizes (default, small, large, icon).
+**File:** `src/components/ui/button.jsx`
+
+**Purpose:**  
+This is a reusable button element using Tailwind CSS and class-merging helpers like `clsx` and `twMerge`. It offers different styles and sizes—default, small, large, or icon—making it easier to maintain design consistency across the app.
 
 #### Notifications Component
 
-- **File:** `src/components/Notifications.jsx`
-- **Purpose:**  
-  Renders a list of global notifications using the Notification Context.
+**File:** `src/components/Notifications.jsx`
 
-*Note:* Additional UI elements (e.g., InfoCard, SortDropdown, and FilterDropdown) are used within the gallery and preference pages to enhance user interaction.
+**Purpose:**  
+This component shows global notifications on the screen, powered by the Notification Context. It helps keep users informed about key events, errors, and confirmations.
+
+*Note:* Additional UI elements such as `InfoCard`, `SortDropdown`, and `FilterDropdown` appear within the gallery and user preferences sections for a richer user experience.
 
 ---
 
 ## Configuration Files
 
-- **package.json:**  
-  Contains project metadata, dependency lists, and scripts for development, building, and starting the application.
-- **next.config.mjs:**  
-  Configures Next.js settings including custom headers (for CORS), experimental options, module transpilation, and webpack fallbacks.
-- **jsconfig.json:**  
-  Sets up module path aliases for cleaner import statements.
-- **.gitignore:**  
-  Lists files and folders excluded from version control (e.g., node_modules, env files).
-- **LICENSE:**  
-  The project is licensed under the MIT License.
+The `package.json` file holds essential information about the project, including its dependencies and the scripts used for development, building, and running. In `next.config.mjs`, you can fine-tune Next.js settings such as custom headers for CORS, experimental features, and webpack fallbacks or module transpilation. 
+
+`jsconfig.json` defines module path aliases for cleaner import paths, while `.gitignore` prevents files like `node_modules` and environment variables from being tracked by Git. The project is released under the MIT License, as specified in the `LICENSE` file.
 
 ---
 
 ## Usage
 
-1. **Set Up Environment Variables:**  
-   Ensure that you have configured environment variables for:
-   - Firebase (e.g., `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, etc.)
-   - Google services (e.g., `NEXT_PUBLIC_GEMINI_API_KEY`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, etc.)
-   - Dialogflow credentials
-   - OpenRouteService API key (`NEXT_PUBLIC_ORS_API_KEY`)
-  
-2. **Install Dependencies:**  
-   Run:
-   ```
-   npm install
-   ```
-   or
-   ```
-   yarn install
-   ```
+1. **Set Up Environment Variables**  
+   Make sure you have defined environment variables for Firebase (`NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, etc.), Google APIs (`NEXT_PUBLIC_GEMINI_API_KEY`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, etc.), Dialogflow credentials, and the OpenRouteService (`NEXT_PUBLIC_ORS_API_KEY`).
 
-3. **Start the Development Server:**  
-   Run:
-   ```
-   npm run dev
-   ```
-   Access the application at [http://localhost:3000](http://localhost:3000).
+2. **Install Dependencies**  
+   After cloning the repository, run `npm install` or `yarn install` to add all required packages.
 
-4. **Deploy:**  
-   Follow Next.js deployment guidelines or deploy via the Vercel platform for production.
+3. **Start the Development Server**  
+   Use `npm run dev` or `yarn dev` to begin development on [http://localhost:3000](http://localhost:3000).
+
+4. **Deploy**  
+   For production, follow the standard Next.js deployment procedure or use Vercel for a smooth experience.
 
 ---
 
 ## License
 
-This project is open source and licensed under the [MIT License](./LICENSE).
-
----
-
-By providing comprehensive modular explanations and clear documentation of each function and module, this README serves as both an overview and a developer guide for the Emergency Assistance App codebase.
+This project is open source and offered under the [MIT License](./LICENSE).
