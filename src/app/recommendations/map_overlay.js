@@ -37,7 +37,7 @@ const getOpacity = (confidence) => {
   }
 };
 
-export default function MapOverlay({ landsatData, recommendations, userLocation }) {
+export default function MapOverlay({ landsatData, userLocation }) {
   const { user } = useAuth();
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -45,8 +45,7 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [routeInfo, setRouteInfo] = useState(null);
   const [directions, setDirections] = useState(null);
-  // New state for the user's current location
-  const [userLocation, setUserLocation] = useState(null);
+  const [currentUserLocation, setCurrentUserLocation] = useState(userLocation);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -58,19 +57,17 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          setCurrentUserLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
         },
         (error) => {
           console.error("Error retrieving user location:", error);
-          setUserLocation({ lat: 40.8117, lng: -81.9308 });
         }
       );
     } else {
       console.error("Geolocation not supported by this browser.");
-      setUserLocation({ lat: 40.8117, lng: -81.9308 });
     }
   }, []);
 
@@ -102,13 +99,13 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
         sumLng += parseFloat(point.lng);
       });
       return { lat: sumLat / landsatData.length, lng: sumLng / landsatData.length };
-    } else if (userLocation) {
-      return userLocation;
+    } else if (currentUserLocation) {
+      return currentUserLocation;
     } else {
       // Fallback default if neither landsatData nor geolocation is available
       return { lat: 40.8117, lng: -81.9308 };
     }
-  }, [landsatData, userLocation]);
+  }, [landsatData, currentUserLocation]);
 
   useEffect(() => {
     if (map && landsatData && landsatData.length > 0 && window.google) {
@@ -152,7 +149,7 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
     const destinationCoords = { lat: 33.775, lng: -84.396 }; // 목적지
 
     // Pass an empty array or no waypoints at all:
-    const routeData = await fetchRouteInfo(originCoords, destinationCoords, [], user);
+    const routeData = await fetchRouteInfo(originCoords, destinationCoords, [], currentUserLocation);
     console.log("Route Data:", routeData);
     
     // Render the route, etc.
@@ -174,7 +171,7 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
     const destinationCoords = { lat: 33.775, lng: -84.396 };
 
     // ORS function call
-    const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons, userLocation);
+    const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons, currentUserLocation);
     console.log("ORS Route Data:", routeData);
     
     if (routeData.geometry && window.google && map) {
@@ -187,8 +184,8 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
         strokeWeight: 4,
       });
       
-      console.log(`ETA (초): ${routeData.eta}`);
-      console.log(`거리 (미터): ${routeData.distance}`);
+      console.log(`ETA (seconds): ${routeData.eta}`);
+      console.log(`distance (meters): ${routeData.distance}`);
     }
   };
 

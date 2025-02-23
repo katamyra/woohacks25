@@ -2,7 +2,6 @@
 import axios from 'axios';
 
 
-
 export const fetchSafeRouteORS = async (origin, destination, firePolygonsCollection, userLocation) => {
   try {
     const orsApiKey = process.env.NEXT_PUBLIC_ORS_API_KEY;
@@ -11,29 +10,6 @@ export const fetchSafeRouteORS = async (origin, destination, firePolygonsCollect
     }
 
     console.log("Fire Polygons Collection:", JSON.stringify(firePolygonsCollection, null, 2));
-
-    // Example request body: for reference for the developers
-    // const requestBody = {
-    //   coordinates: [
-    //     [8.681495, 49.41461],
-    //     [8.686507, 49.41943],
-    //     [8.687872, 49.420318]
-    //   ],
-    //   options: {
-    //     avoid_polygons: {
-    //       type: "Polygon", // Using your specified format
-    //       coordinates: [
-    //         [
-    //           [-84.406, 33.641],
-    //           [-84.407, 33.641],
-    //           [-84.407, 33.640],
-    //           [-84.406, 33.640],
-    //           [-84.406, 33.641] // Closing the polygon
-    //         ]
-    //       ]
-    //     }
-    //   }
-    // };
 
     const requestBody = {
       coordinates: [
