@@ -7,6 +7,13 @@ import Script from 'next/script';
 import { usePathname } from 'next/navigation';
 import AlertNotifier from '@/components/AlertNotifier';
 import { Header } from '@/components/ui/Header';
+import { Roboto } from 'next/font/google';
+import StepsProgress from '@/components/ui/StepsProgress';
+
+const roboto = Roboto({ 
+  weight: ['400', '500', '700'],
+  subsets: ['latin']
+});
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
@@ -19,7 +26,7 @@ export default function RootLayout({ children }) {
   ];
 
   return (
-    <html lang="en">
+    <html lang="en" className={roboto.className}>
       <body className="flex flex-col min-h-screen">
         <AuthProvider>
           <NotificationProvider>
@@ -32,22 +39,7 @@ export default function RootLayout({ children }) {
             <main className="flex-grow bg-gray-900 text-gray-100 pb-12">
               <div className="container mx-auto px-4 py-4 h-full">
                 <div className="flex justify-between items-center mb-4">
-                  <ul className="steps steps-neutral flex-1">
-                    {steps.map((step, index) => {
-                      const isActive = pathname === step.path;
-                      const isCompleted = steps.findIndex(s => s.path === pathname) > index;
-                      
-                      return (
-                        <li
-                          key={step.name}
-                          className={`step ${isActive ? 'step-primary' : ''} ${isCompleted ? 'step-primary' : ''}`}
-                          data-content={isCompleted ? '✓' : ''}
-                        >
-                          {step.name}
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  <StepsProgress steps={steps} currentPath={pathname} />
                 </div>
                 {children}
               </div>
