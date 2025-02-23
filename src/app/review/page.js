@@ -14,6 +14,7 @@ export default function Review() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
   const [additionalInfo, setAdditionalInfo] = useState('');
+  const [lastAdditionalInfo, setLastAdditionalInfo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
@@ -24,7 +25,7 @@ export default function Review() {
           const data = await firestoreService.getUserData(user.uid);
           setUserData(data);
           if (data?.preferences) {
-            generateReview(data.preferences);
+            await generateReview(data.preferences);
           }
         } catch (error) {
           setError('Error fetching user data: ' + error.message);
@@ -57,8 +58,11 @@ export default function Review() {
 
       const result = await generateContent(prompt);
       setAiReview(result);
+      setLastAdditionalInfo(additionalInfo);
+      return result;
     } catch (error) {
       setError('Error generating review: ' + error.message);
+      throw error;
     } finally {
       setIsGenerating(false);
     }
@@ -74,7 +78,11 @@ export default function Review() {
     setError('');
 
     try {
-      const fullReview = `${aiReview}\n\nAdditional Notes: ${additionalInfo}`;
+      let reviewToSave = aiReview;
+      if (additionalInfo !== lastAdditionalInfo) {
+        reviewToSave = await generateReview(userData.preferences);
+      }
+      const fullReview = `${reviewToSave}\n\nAdditional Notes: ${additionalInfo}`;
       
       await firestoreService.setUser(user.uid, {
         review: fullReview,
@@ -85,7 +93,6 @@ export default function Review() {
       router.push('/recommendations');
     } catch (error) {
       setError('Failed to save review: ' + error.message);
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -93,17 +100,6 @@ export default function Review() {
   const handleAdditionalInfoChange = (e) => {
     setAdditionalInfo(e.target.value);
   };
-
-  useEffect(() => {
-    // Debounce the AI review generation
-    const timeoutId = setTimeout(() => {
-      if (userData?.preferences && additionalInfo) {
-        generateReview(userData.preferences);
-      }
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  }, [additionalInfo, userData?.preferences]); // Add dependencies here
 
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
@@ -156,7 +152,7 @@ export default function Review() {
                   value={additionalInfo}
                   onChange={handleAdditionalInfoChange}
                 />
-                <div className="flex justify-end mt-4">
+                <div className="flex justify-start mt-4">
                   <button 
                     className="btn btn-primary"
                     onClick={handleSaveReview}
