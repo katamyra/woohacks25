@@ -1,9 +1,9 @@
 // InfoCard.js
 import React, { useState, useEffect } from "react";
 import InfoPopup from "./infoPopup";
-import { fetchRouteInfo } from "@/utils/fetchRoutes"; // helper to call the Routes API
+import { fetchRouteInfo } from "@/utils/fetchRouteInfo"; // helper to call the Routes API
 
-const infoCard = ({ place, userLocation, geminiExplanation }) => {
+const infoCard = ({ place, userLocation, geminiExplanation, user }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [routeInfo, setRouteInfo] = useState({ eta: null, distance: null });
 
@@ -15,6 +15,8 @@ const infoCard = ({ place, userLocation, geminiExplanation }) => {
         const data = await fetchRouteInfo(
           { lat: userLocation.lat, lng: userLocation.lng },
           { lat: place.geometry.location.lat, lng: place.geometry.location.lng },
+          null,
+          user,
         );
         // Assume data contains: { eta: <minutes>, distance: <miles> }
         setRouteInfo(data);
@@ -24,7 +26,7 @@ const infoCard = ({ place, userLocation, geminiExplanation }) => {
     };
 
     getRouteDetails();
-  }, [userLocation, place]);
+  }, [userLocation, place, user]);
 
   return (
     <>
@@ -45,7 +47,7 @@ const infoCard = ({ place, userLocation, geminiExplanation }) => {
           style={{
             position: "absolute",
             top: "5px",
-            left: "5px",
+            right: "5px",
             backgroundColor: "#007BFF",
             color: "#fff",
             padding: "2px 6px",

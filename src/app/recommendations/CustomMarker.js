@@ -59,8 +59,6 @@ const CustomMarker = ({ lat, lng, confidence, acqDate, acqTime }) => {
           opacity: getOpacity(confidence),
           transform: `translate(-50%, -50%) ${isVisible ? 'scale(1)' : 'scale(0.5)'}`, // Scale effect on load
           boxShadow: "0 2px 5px rgba(0, 0, 0, 0.3)",
-          transition: "transform 0.2s, background 0.2s, opacity 0.2s", // Smooth transition
-          animation: isVisible ? 'pulse 1.5s infinite' : 'none', // Pulse effect
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -91,20 +89,3 @@ const CustomMarker = ({ lat, lng, confidence, acqDate, acqTime }) => {
 };
 
 export default CustomMarker;
-
-// Add this CSS for the pulse effect
-const style = document.createElement('style');
-style.innerHTML = `
-  @keyframes pulse {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.1);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-`;
-document.head.appendChild(style); 
