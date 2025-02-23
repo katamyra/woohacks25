@@ -128,37 +128,67 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
   // Wrap polygons as a MultiPolygon for the ORS API
   const avoidPolygons = {
     type: "MultiPolygon",
-    coordinates: firePolygons.map((coords) => coords),
+    coordinates: firePolygons.map(coords => coords) 
   };
 
-  // Automatically fetch and render the safe route when a destination is set.
-  useEffect(() => {
-    if (destination && map && window.google) {
-      const getSafeRoute = async () => {
-        try {
-          const routeData = await fetchSafeRouteORS(
-            currentUserLocation,
-            destination,
-            avoidPolygons,
-            currentUserLocation
-          );
-          setRouteInfo(routeData);
-          if (routeData.geometry) {
-            const pathCoordinates = decodeORSGeometry(routeData.geometry);
-            new window.google.maps.Polyline({
-              map: map,
-              path: pathCoordinates,
-              strokeColor: "#4285F4",
-              strokeWeight: 4,
-            });
-            console.log(`ETA (seconds): ${routeData.eta}`);
-            console.log(`Distance (meters): ${routeData.distance}`);
-          }
-        } catch (error) {
-          console.error("Error fetching safe route via ORS:", error);
-        }
-      };
-      getSafeRoute();
+  localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
+
+  const requestBody = {
+    coordinates: [
+      [8.681495, 49.41461],
+      [8.686507, 49.41943],
+      [8.687872, 49.420318]
+    ],
+    options: {
+      avoid_polygons: avoidPolygons // Use the MultiPolygon
+    }
+  };
+
+  // --- Get Route Info using fetchRouteInfo ---
+  const handleSafeRoute = async () => {
+    if (!map || !user) return;
+
+    const originCoords = { lat: 33.6522, lng: -84.3394 }; // 출발지
+    const destinationCoords = { lat: 33.775, lng: -84.396 }; // 목적지
+
+    // Pass an empty array or no waypoints at all:
+    const routeData = await fetchRouteInfo(originCoords, destinationCoords, [], currentUserLocation);
+    console.log("Route Data:", routeData);
+    
+    // Render the route, etc.
+    if (routeData.encodedPolyline && window.google && map) {
+      const path = window.google.maps.geometry.encoding.decodePath(routeData.encodedPolyline);
+      new window.google.maps.Polyline({
+        map: map,
+        path: path,
+        strokeColor: "#4285F4",
+        strokeWeight: 4,
+      });
+    }
+  };
+
+  const handleSafeRouteORS = async () => {
+    if (!map || !user) return;
+
+    const originCoords = { lat: 33.6522, lng: -84.3394 };
+    const destinationCoords = { lat: 33.775, lng: -84.396 };
+
+    // ORS function call
+    const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons);
+    console.log("ORS Route Data:", routeData);
+    
+    if (routeData.geometry && window.google && map) {
+      const pathCoordinates = decodeORSGeometry(routeData.geometry);
+      
+      new window.google.maps.Polyline({
+        map: map,
+        path: pathCoordinates,
+        strokeColor: "#4285F4",
+        strokeWeight: 4,
+      });
+      
+      console.log(`ETA (seconds): ${routeData.eta}`);
+      console.log(`distance (meters): ${routeData.distance}`);
     }
   }, [destination, map, currentUserLocation, avoidPolygons]);
 
