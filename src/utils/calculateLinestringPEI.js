@@ -20,7 +20,7 @@ export const calculateWeightedPEIScore = (line, polygons) => {
     if (overlap) {
       // Compute the length of the overlapping segment.
       const segmentLength = turf.length(overlap, { units: "kilometers" });
-      const segmentLengthMeters = segmentLengthKm * 1000;
+      const segmentLengthMeters = segmentLength * 1000;
       weightedSum += segmentLengthMeters * peiScore;
       totalLength += segmentLengthMeters;
     }
