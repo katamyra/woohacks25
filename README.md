@@ -58,6 +58,7 @@ This project is built using Next.js and modern React tools. It assists users aff
 ### Data & Authentication
 > **Firebase Firestore** — Scalable NoSQL cloud database  
 > **Firebase Auth** — Secure user authentication and identity management
+> **Google OAuth2.0** - a secure protocol that lets third-party apps request access to a user’s Google account without needing their password
 
 ---
 
@@ -262,42 +263,4 @@ By parsing Gemini’s output, this utility finds URLs within the text and sends 
 
 **Purpose:**  
 This file converts a LineString geometry from an OpenRouteService response into a list of coordinate objects (with `lat` and `lng` keys) so that the route can be properly rendered on the map.
-
----
-
-### Context Providers
-
-#### Notification Context
-
-**File:** `src/context/NotificationContext.jsx`
-
-**Purpose:**  
-This component sets up a global notifications system that can be accessed anywhere in the application. The `addNotification(notification)` function registers a new alert, while `clearNotifications()` removes all current alerts.
-
-#### Authentication Context
-
-**File:** `src/context/AuthContext.js`
-
-**Purpose:**  
-This context supplies authentication information (user data and loading status) across the entire app via the `useAuth()` hook, simplifying login state management.
-
----
-
-### UI Components
-
-#### Button Component
-
-**File:** `src/components/ui/button.jsx`
-
-**Purpose:**  
-This is a reusable button element using Tailwind CSS and class-merging helpers like `clsx` and `twMerge`. It offers different styles and sizes—default, small, large, or icon—making it easier to maintain design consistency across the app.
-
-#### Notifications Component
-
-**File:** `src/components/Notifications.jsx`
-
-**Purpose:**  
-This component shows global notifications on the screen, powered by the Notification Context. It helps keep users informed about key events, errors, and confirmations.
-
-*Note:* Additional UI elements such as `InfoCard`, `SortDropdown`, and `FilterDropdown` appear within the gallery and user preferences sections for a richer user experience.
 
