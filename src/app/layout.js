@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <NotificationProvider>
             <div className="bg-white text-black">
-              <AlertNotifier />
+              <AlertNotifier className="min-h-[50px]" />
             </div>
             <div className="bg-white text-black">
               <Header />
