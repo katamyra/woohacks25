@@ -74,15 +74,21 @@ const InfoCard = ({
         </p>
         <p style={{ fontSize: "10px", color: "#555" }}>
           {routeInfo.eta
-
             ? (() => {
                 const etaMinutes = Math.round(parseInt(routeInfo.eta) / 60);
                 return `ETA: ${etaMinutes} minutes`;
               })()
             : `ETA: ${Math.round(place.dummyETA)} minutes`}
           {" • "}
-          Walkability: {place.walkability !== null ? place.walkability.toFixed(2) : "Loading..."}
-
+          Walkability:{" "}
+          {
+            // If walkability is null, show "Loading...", if 0 then "N/A", otherwise display the value rounded to two decimals.
+            place.walkability === null
+              ? "Loading..."
+              : place.walkability === 0
+              ? "N/A"
+              : place.walkability.toFixed(2)
+          }
         </p>
       </div>
 
