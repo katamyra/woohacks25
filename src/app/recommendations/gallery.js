@@ -1,8 +1,48 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import InfoCard from "./infoCard";
 import SortDropdown from "./sortDropdown";
 import FilterDropdown from "./infoFilterDropdown";
+import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 
+async function fetchCsvAndParse(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`CSV fetch failed: ${response.status}`);
+  }
+  const text = await response.text();
+  const lines = text.split(/\r?\n/);
+  if (lines.length === 0) return {};
+  const header = lines[0].split(",");
+  const geoidIndex = header.indexOf("GEOID");
+  const peiIndex = header.indexOf("PEI");
+  if (geoidIndex === -1 || peiIndex === -1) {
+    throw new Error("CSV missing GEOID or PEI_score columns");
+  }
+  const scoreMap = {};
+  for (let i = 1; i < lines.length; i++) {
+    const row = lines[i].trim();
+    if (!row) continue;
+    const cols = row.split(",");
+    const geoid = cols[geoidIndex];
+    const pei = parseFloat(cols[peiIndex]);
+    if (geoid && !isNaN(pei)) {
+      scoreMap[geoid] = pei;
+    }
+  }
+  return scoreMap;
+}
+
+// Merge PEI scores into GeoJSON features.
+function mergePEIScoreIntoGeojson(geojson, scoreMap) {
+  if (!geojson.features) return geojson;
+  geojson.features.forEach((feature) => {
+    const geoid = feature.properties?.GEOID;
+    if (geoid && scoreMap[geoid] !== undefined) {
+      feature.properties.PEI_score = scoreMap[geoid];
+    }
+  });
+  return geojson;
+}
 /**
  * Maps raw amenity types (from the Google Places API) into filter groups.
  */
@@ -110,6 +150,53 @@ const getFilterCategories = (types) => {
   return Array.from(categories);
 };
 
+// Helper to determine if a point [lng, lat] is inside a polygon represented as an array of [lng, lat] coordinates.
+const pointInPolygon = (point, vs) => {
+  let x = point[0],
+    y = point[1];
+  let inside = false;
+  for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+    let xi = vs[i][0],
+      yi = vs[i][1];
+    let xj = vs[j][0],
+      yj = vs[j][1];
+    let intersect =
+      (yi > y) !== (yj > y) &&
+      x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+    if (intersect) inside = !inside;
+  }
+  return inside;
+};
+
+// Helper to get walkability (PEI_score) for a recommendation based on its location.
+const getWalkabilityScoreForRecommendation = (rec, geojson) => {
+  if (!geojson || !geojson.features) return 0;
+  // Use rec.geometry.location.lng/lat
+  const point = [rec.geometry.location.lng, rec.geometry.location.lat];
+  for (const feature of geojson.features) {
+    const geom = feature.geometry;
+    if (geom.type === "Polygon") {
+      for (const ring of geom.coordinates) {
+        if (pointInPolygon(point, ring)) {
+          return feature.properties.PEI_score || 0;
+        }
+      }
+    } else if (geom.type === "MultiPolygon") {
+      for (const polygon of geom.coordinates) {
+        for (const ring of polygon) {
+          if (pointInPolygon(point, ring)) {
+            return feature.properties.PEI_score || 0;
+          }
+        }
+      }
+    }
+  }
+  return 0;
+};
+
+const geoJsonUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.geojson?cachebust=1";
+const csvUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.csv?cachebust=1";
+
 const Gallery = ({
   recommendations,
   userLocation,
@@ -125,20 +212,66 @@ const Gallery = ({
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [filterSearch, setFilterSearch] = useState("");
 
-  // Enhance recommendations with dummy ETA and walkability scores
+  // NEW: State to store walkability GeoJSON once fetched and merged with scores.
+  const [walkabilityData, setWalkabilityData] = useState(null);
+  // NEW: State for real ETA values fetched via fetchSafeRouteORS, mapping recommendation's place_id to its ETA.
+  const [etaMap, setEtaMap] = useState({});
+
+  // NEW: Fetch walkability data (CSV and GeoJSON) and merge PEI scores
+  useEffect(() => {
+    const fetchWalkabilityData = async () => {
+      try {
+        const scoreMap = await fetchCsvAndParse(csvUrl);
+        const geoRes = await fetch(geoJsonUrl);
+        if (!geoRes.ok) {
+          throw new Error(`GeoJSON fetch failed: ${geoRes.status}`);
+        }
+        const geojson = await geoRes.json();
+        mergePEIScoreIntoGeojson(geojson, scoreMap);
+        setWalkabilityData(geojson);
+      } catch (error) {
+        console.error("Error fetching walkability data:", error);
+      }
+    };
+    fetchWalkabilityData();
+  }, []);
+
+  // NEW: Fetch real ETA values for each recommendation using fetchSafeRouteORS.
+  useEffect(() => {
+    async function fetchEtas() {
+      const newEtaMap = {};
+      for (const rec of recommendations) {
+        try {
+          const routeData = await fetchSafeRouteORS(
+            userLocation,
+            { lat: rec.geometry.location.lat, lng: rec.geometry.location.lng },
+            null, // pass firePolygonsCollection if available
+            userLocation
+          );
+          newEtaMap[rec.place_id] = routeData.eta;
+        } catch (error) {
+          console.error(`Error fetching ETA for ${rec.place_id}:`, error);
+          newEtaMap[rec.place_id] = 0;
+        }
+      }
+      setEtaMap(newEtaMap);
+    }
+    if (recommendations.length > 0) {
+      fetchEtas();
+    }
+  }, [recommendations, userLocation]);
+
+  // Enhance recommendations with real ETA and real walkability scores.
+  // The real ETA is fetched asynchronously via fetchSafeRouteORS and stored in etaMap.
   const enhancedRecommendations = useMemo(() => {
     return recommendations.map((rec) => ({
       ...rec,
-      dummyETA:
-        rec.dummyETA !== undefined
-          ? rec.dummyETA
-          : Math.floor(Math.random() * 30) + 5, // random between 5 and 35 minutes
-      walkability:
-        rec.walkability !== undefined
-          ? rec.walkability
-          : Math.floor(Math.random() * 100) + 1, // random score between 1 and 100
+      dummyETA: etaMap[rec.place_id] !== undefined ? etaMap[rec.place_id] : 0,
+      walkability: walkabilityData
+        ? getWalkabilityScoreForRecommendation(rec, walkabilityData)
+        : 0,
     }));
-  }, [recommendations]);
+  }, [recommendations, walkabilityData, etaMap]);
 
   // Fixed filter groups (in desired order)
   const fixedFilters = [
