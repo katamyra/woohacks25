@@ -39,15 +39,16 @@ const getOpacity = (confidence) => {
   }
 };
 
-export default function MapOverlay({ landsatData, recommendations, userLocation, destination }) {
+export default function MapOverlay({ landsatData, recommendations, destination }) {
   console.log("Recommendations:", recommendations)
   const { user } = useAuth();
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [hoverScore, setHoverScore] = useState(null);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
-  const [currentUserLocation, setCurrentUserLocation] = useState(userLocation);
   const [mergedGeojson, setMergedGeojson] = useState(null);
+  const [routeInfo, setRouteInfo] = useState(null);
+  const [currentUserLocation, setCurrentUserLocation] = useState();
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -129,7 +130,7 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
   // Wrap polygons as a MultiPolygon for the ORS API
   const avoidPolygons = {
     type: "MultiPolygon",
-    coordinates: firePolygons.map((coords) => coords),
+    coordinates: firePolygons.map(coords => coords) 
   };
 
   // Automatically fetch and render the safe route when a destination is set.
@@ -168,7 +169,54 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
           console.error("Error fetching safe route via ORS:", error);
         }
       };
-      getSafeRoute();
+      getSafeRoute()
+  localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
+
+  // --- Get Route Info using fetchRouteInfo ---
+  const handleSafeRoute = async () => {
+    if (!map || !user) return;
+
+    const originCoords = { lat: 33.6522, lng: -84.3394 }; // 출발지
+    const destinationCoords = { lat: 33.775, lng: -84.396 }; // 목적지
+
+    // Pass an empty array or no waypoints at all:
+    const routeData = await fetchRouteInfo(originCoords, destinationCoords, [], currentUserLocation);
+    console.log("Route Data:", routeData);
+    
+    // Render the route, etc.
+    if (routeData.encodedPolyline && window.google && map) {
+      const path = window.google.maps.geometry.encoding.decodePath(routeData.encodedPolyline);
+      new window.google.maps.Polyline({
+        map: map,
+        path: path,
+        strokeColor: "#4285F4",
+        strokeWeight: 4,
+      });
+    }
+  };
+
+  const handleSafeRouteORS = useCallback(async () => {
+    if (!map || !user) return;
+
+    const originCoords = { lat: 33.6522, lng: -84.3394 };
+    const destinationCoords = { lat: 33.775, lng: -84.396 };
+
+    // ORS function call
+    const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons);
+    console.log("ORS Route Data:", routeData);
+    
+    if (routeData.geometry && window.google && map) {
+      const pathCoordinates = decodeORSGeometry(routeData.geometry);
+      
+      new window.google.maps.Polyline({
+        map: map,
+        path: pathCoordinates,
+        strokeColor: "#4285F4",
+        strokeWeight: 4,
+      });
+      
+      console.log(`ETA (seconds): ${routeData.eta}`);
+      console.log(`distance (meters): ${routeData.distance}`);
     }
   }, [destination, map, currentUserLocation, avoidPolygons]);
 
@@ -275,6 +323,9 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
     color: "#fff",
     cursor: "default",
   };
+
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const userLocation = storedUser?.userLocation; // Use optional chaining to avoid errors
 
   return (
     <div style={{ flex: 1, position: "relative" }}>

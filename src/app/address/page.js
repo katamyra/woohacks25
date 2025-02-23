@@ -112,6 +112,17 @@ export default function AddressPage() {
           lastUpdated: new Date().toISOString(),
         },
       });
+
+      // Save user information to localStorage
+      localStorage.setItem('user', JSON.stringify({
+        uid: user.uid,
+        email: user.email, 
+        userLocation: {
+          lat: location.lat,
+          lng: location.lng,
+        }
+      }));
+
       router.push('/preferences');
     } catch (error) {
       alert('Error saving address: ' + error.message);
