@@ -6,7 +6,6 @@ import { useAuth } from '@/context/AuthContext';
 import { firestoreService } from '@/firebase/services/firestore';
 import { fetchRecommendations } from '@/utils/fetchRecommendations';
 import axios from 'axios';
-import { fetchSafeRouteORS } from '@/utils/fetchSafeRouteORS';
 
 const RecommendationsPage = () => {
   const [galleryExpanded, setGalleryExpanded] = useState(false);
@@ -112,7 +111,7 @@ const RecommendationsPage = () => {
           satellite: item.satellite,
         }));
 
-        // Filter the data to include only points near "altnata"
+        // Filter the data to include only points near "atlanta"
         const filteredData = data.filter(item => {
           const distance = getDistanceFromLatLonInKm(item.lat, item.lng, targetLat, targetLng);
           return distance < thresholdDistanceKm;
