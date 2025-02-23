@@ -63,10 +63,13 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user, onSetDestinati
         </p>
         <p style={{ fontSize: "12px", color: "#555" }}>
           {routeInfo.eta
-            ? `ETA: ${routeInfo.eta} minutes`
-            : `ETA: ${place.dummyETA} minutes`}
+            ? (() => {
+                const etaMinutes = Math.round(parseInt(routeInfo.eta) / 60);
+                return `ETA: ${etaMinutes} minutes`;
+              })()
+            : `ETA: ${Math.round(place.dummyETA)} minutes`}
           {" • "}
-          Walkability: {place.walkability}
+          Walkability: {place.walkability?.toFixed(2) || "N/A"}
         </p>
       </div>
 
