@@ -27,15 +27,15 @@ The Emergency Assistance App is a Next.js–based platform designed to support u
 
 ## Overview
 
-This project is built using Next.js and modern React tools. It assists users affected by emergencies by aggregating personalized recommendations, safe travel routes, and environmental hazard data on interactive maps. The app leverages generative AI to create content and explanations, offers real-time data from NASA and Google APIs, and integrates Firebase for user management.
+This project is built using Next.js and modern React tools. It assists users affected by emergencies by aggregating personalized recommendations, safe travel routes, and environmental hazard data on interactive maps. The app leverages generative AI to create content and explanations, offers real-time data from NASA and Google APIs, and integrates Firebase for user management. What makes our project unique is that it uses Gemini to smartly generate queries for google maps APIs, allowing for our project to chose the best amenities based on peoples needs. This allows people to put in dynamic or uncommon requests and our system will be able to adapt to them becauase Gemini will generate smart queries for it.
 
 ---
 
 ## Tech Stack
 
 - **Frontend:** Next.js, React, Tailwind CSS
-- **Backend:** Node.js, Next.js API routes, Axios
-- **AI & Mapping:** Google Generative AI (Gemini), Google Maps, Google Places, Google Directions, Dialogflow
+- **Backend:** Next.js API routes, Axios
+- **AI & Mapping:** Google Generative AI (Gemini), Google Maps API, Google Places API, Google Directions, Dialogflow
 - **Data & Authentication:** Firebase (Firestore & Auth)
 - **External Data:** NASA Landsat API, OpenRouteService (ORS)
 - **Utilities:** Turf.js for geospatial computations, axios for HTTP requests

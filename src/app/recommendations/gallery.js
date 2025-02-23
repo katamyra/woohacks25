@@ -3,9 +3,6 @@ import InfoCard from "./infoCard";
 import SortDropdown from "./sortDropdown";
 import FilterDropdown from "./infoFilterDropdown";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
-import { decodeORSGeometry } from "@/utils/decodeORSGeometry";
-import { calculateWeightedPEIScore } from "@/utils/calculateLinestringPEI";
-import * as turf from "@turf/turf";
 
 async function fetchCsvAndParse(url) {
   const response = await fetch(url);
@@ -246,31 +243,16 @@ const Gallery = ({
       const newEtaMap = {};
       for (const rec of recommendations) {
         try {
-          const lat = rec.geometry.location.lat;
-          const lng = rec.geometry  .location.lng;
-          const destination = { lat: lat, lng: lng };
-
           const routeData = await fetchSafeRouteORS(
             userLocation,
-            destination,
-            localStorage.getItem("firePolygonsCollection"),
-            userLocation
+            { lat: rec.geometry.location.lat, lng: rec.geometry.location.lng },
+            localStorage.getItem("firePolygonsCollection")
           );
-          // Initialize weightedWalkability as zero.
-          let weightedWalkability = 0;
-          // If route geometry is available and walkabilityData is loaded, compute weighted average.
-          if (routeData.geometry && walkabilityData) {
-            const pathCoordinates = decodeORSGeometry(routeData.geometry);
-            if (pathCoordinates.length > 0) {
-              const lineCoords = pathCoordinates.map(coord => [coord.lng, coord.lat]);
-              const routeLine = turf.lineString(lineCoords);
-              weightedWalkability = calculateWeightedPEIScore(routeLine, walkabilityData) || 0;
-            }
-          }
-          newEtaMap[rec.place_id] = { eta: routeData.eta, weightedWalkability };
+          // Store only ETA
+          newEtaMap[rec.place_id] = routeData.eta;
         } catch (error) {
           console.error(`Error fetching ETA for ${rec.place_id}:`, error);
-          newEtaMap[rec.place_id] = { eta: 0, weightedWalkability: 0 };
+          newEtaMap[rec.place_id] = 0;
         }
       }
       setEtaMap(newEtaMap);
@@ -278,24 +260,18 @@ const Gallery = ({
     if (recommendations.length > 0) {
       fetchEtas();
     }
-  }, [recommendations, userLocation, walkabilityData]);
+  }, [recommendations, userLocation]);
 
-  // Enhance recommendations with real ETA and real walkability scores.
-  // The real ETA is fetched asynchronously via fetchSafeRouteORS and stored in etaMap.
+  // Simplify enhanced recommendations
   const enhancedRecommendations = useMemo(() => {
     return recommendations.map((rec) => ({
       ...rec,
-      dummyETA: etaMap[rec.place_id] !== undefined ? etaMap[rec.place_id] : 0,
-      walkability:
-      etaMap[rec.place_id]?.weightedWalkability !== undefined
-        ? Number(etaMap[rec.place_id].weightedWalkability.toFixed(2))
-        : walkabilityData
+      dummyETA: etaMap[rec.place_id] || 0,
+      walkability: walkabilityData 
         ? Number(getWalkabilityScoreForRecommendation(rec, walkabilityData).toFixed(2))
-        : 0,
+        : null
     }));
   }, [recommendations, walkabilityData, etaMap]);
-  console.log("enhancedRecommendations", enhancedRecommendations);
-  console.log("etaMap", etaMap);
 
   // Fixed filter groups (in desired order)
   const fixedFilters = [

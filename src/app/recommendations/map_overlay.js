@@ -161,8 +161,7 @@ export default function MapOverlay({ landsatData, recommendations, destination }
           const routeData = await fetchSafeRouteORS(
             currentUserLocation,
             destination,
-            avoidPolygons,
-            currentUserLocation
+            avoidPolygons
           );
           setRouteInfo(routeData);
           if (routeData.geometry) {
@@ -173,32 +172,21 @@ export default function MapOverlay({ landsatData, recommendations, destination }
               strokeColor: "#4285F4",
               strokeWeight: 4,
             });
-            console.log(`ETA (seconds): ${routeData.eta}`);
-            console.log(`Distance (meters): ${routeData.distance}`);
-
-            if (mergedGeojson && pathCoordinates.length > 0) {
-              const weightedPEIScore = calculateWeightedPEIScore(routeData.geometry, mergedGeojson);
-              if (weightedPEIScore !== null) {
-                console.log("Weighted PEI Score along route (meters):", weightedPEIScore.toFixed(2));
-              } else {
-                console.log("Route does not intersect any PEI polygons.");
-              }
-            }
           }
         } catch (error) {
           console.error("Error fetching safe route via ORS:", error);
         }
       };
-      getSafeRoute()
-  localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
+      getSafeRoute();
+      localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
+    }
+  }, [destination, map, currentUserLocation, avoidPolygons]);
 
   // --- Get Route Info using fetchRouteInfo ---
   const handleSafeRoute = async () => {
     if (!map || !user) return;
-
     const originCoords = { lat: 33.6522, lng: -84.3394 }; // 출발지
     const destinationCoords = { lat: 33.775, lng: -84.396 }; // 목적지
-
     // Pass an empty array or no waypoints at all:
     const routeData = await fetchRouteInfo(originCoords, destinationCoords, [], currentUserLocation);
     console.log("Route Data:", routeData);
@@ -214,13 +202,10 @@ export default function MapOverlay({ landsatData, recommendations, destination }
       });
     }
   };
-
   const handleSafeRouteORS = useCallback(async () => {
     if (!map || !user) return;
-
     const originCoords = { lat: 33.6522, lng: -84.3394 };
     const destinationCoords = { lat: 33.775, lng: -84.396 };
-
     // ORS function call
     const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons);
     console.log("ORS Route Data:", routeData);
@@ -239,9 +224,6 @@ export default function MapOverlay({ landsatData, recommendations, destination }
       console.log(`distance (meters): ${routeData.distance}`);
     }
   }, [destination, map, currentUserLocation, avoidPolygons]);
-    }
-  }, [destination, map, window.google]);
-
   async function fetchCsvAndParse(url) {
     const response = await fetch(url);
     if (!response.ok) {
@@ -269,7 +251,6 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     }
     return scoreMap;
   }
-
   // Merge PEI scores into GeoJSON features.
   function mergePEIScoreIntoGeojson(geojson, scoreMap) {
     if (!geojson.features) return geojson;
@@ -281,10 +262,8 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     });
     return geojson;
   }
-
   const geoJsonUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.geojson?cachebust=1";
   const csvUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.csv?cachebust=1";
-
   const toggleGeoJson = async () => {
     if (!map) return;
     if (overlayVisible) {
@@ -317,6 +296,7 @@ export default function MapOverlay({ landsatData, recommendations, destination }
       console.error("Error toggling overlay:", error);
     }
   };
+<<<<<<< HEAD
 
   // Convert the coordinate array from Redux to Google Maps-friendly format
   const routePath = useMemo(() => {
@@ -324,8 +304,9 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     return convertCoords(coordinates);
   }, [coordinates]);
 
+=======
+>>>>>>> d823b00cf4e810b8ff517fc924a731c38c5b9a6e
   if (!isLoaded) return <p>Loading Map...</p>;
-
   const commonStyle = {
     background: isButtonHovered ? "rgb(235, 235, 235)" : "#fff",
     boxShadow: "0 0px 2px rgba(24, 24, 24, 0.3)",
@@ -343,7 +324,6 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     cursor: "pointer",
     marginRight: "10px",
   };
-
   const scoreDisplayStyle = {
     ...commonStyle,
     borderRadius: "0 2px 2px 0",
@@ -351,10 +331,8 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     color: "#fff",
     cursor: "default",
   };
-
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const userLocation = storedUser?.userLocation; // Use optional chaining to avoid errors
-
   return (
     <div style={{ flex: 1, position: "relative" }}>
       <div
@@ -375,7 +353,6 @@ export default function MapOverlay({ landsatData, recommendations, destination }
         >
           {overlayVisible ? "Hide Walkability" : "Show Walkability"}
         </button>
-
         {overlayVisible && (
           <div style={scoreDisplayStyle}>
             {hoverScore !== null
@@ -384,7 +361,6 @@ export default function MapOverlay({ landsatData, recommendations, destination }
           </div>
         )}
       </div>
-
       <GoogleMap
         onLoad={onMapLoad}
         center={center}
@@ -403,7 +379,6 @@ export default function MapOverlay({ landsatData, recommendations, destination }
               acqTime={dataPoint.acq_time}
             />
           ))}
-
         {/* Render fire polygons */}
         {firePolygons.map((poly, idx) => (
           <Polygon
@@ -418,7 +393,6 @@ export default function MapOverlay({ landsatData, recommendations, destination }
             }}
           />
         ))}
-
         {/* Render destination pins for every amenity */}
         {recommendations &&
           recommendations.map((place, idx) => {

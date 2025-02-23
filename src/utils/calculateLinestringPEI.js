@@ -27,7 +27,7 @@ export const calculateWeightedPEIScore = (line, polygons) => {
   });
 
   // Return null if no part of the line intersects any polygon.
-  if (totalLength === 0) return "NA";
+  if (totalLength === 0) return null;
 
   // Compute the weighted average PEI score.
   return weightedSum / totalLength;
