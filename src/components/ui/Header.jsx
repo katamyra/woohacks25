@@ -14,7 +14,7 @@ export function Header() {
     <div className="navbar bg-gray-900">
       <div className="navbar-start">
         <div className="dropdown">
-          <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+          <div tabIndex={0} role="button" className="btn btn-ghost text-white bg-indigo-600">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5"
@@ -30,7 +30,7 @@ export function Header() {
           </div>
           <ul
             tabIndex={0}
-            className="menu menu-sm dropdown-content bg-gray-900 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+            className="menu menu-sm dropdown-content text-white bg-gray-900 rounded-box z-[1] mt-3 w-52 p-2 shadow">
             <li>
               <button onClick={() => handleNavigation('/address')}>
                 Address
@@ -50,11 +50,11 @@ export function Header() {
         </div>
       </div>
       <div className="navbar-center">
-        <a className="btn btn-ghost text-xl text-gray-100">Emergency Assistant</a>
+        <button onClick={() => handleNavigation('/')} className="btn btn-ghost text-xl text-gray-100">Emergency Assistant</button>
       </div>
       <div className="navbar-end">
         <div className="dropdown dropdown-end">
-          <label tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+          <label tabIndex={0} role="button" className="btn btn-ghost  bg-indigo-600 text-white">
             <div className="indicator">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

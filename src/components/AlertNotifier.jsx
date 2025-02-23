@@ -52,7 +52,7 @@ export default function AlertNotifier() {
 
       // Increment the index to use the next predefined notification
       notificationIndex.current++;
-    }, 120000); 
+    }, 12000); 
 
     return () => clearInterval(interval);
   }, [addNotification, predefinedNotifications]);
