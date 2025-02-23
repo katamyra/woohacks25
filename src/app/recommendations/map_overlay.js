@@ -1,6 +1,13 @@
 "use client";
 import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { GoogleMap, useJsApiLoader, Polygon, Marker, Polyline } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  useJsApiLoader,
+  Polygon,
+  Marker,
+  Polyline,
+  DirectionsRenderer,
+} from "@react-google-maps/api";
 import * as turf from "@turf/turf";
 import CustomMarker from "./CustomMarker";
 import { calculateWeightedPEIScore } from "@/utils/calculateLinestringPEI";
@@ -11,21 +18,31 @@ import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { resetCoordinates, addCoordinate } from "../features/coordinates/coordinatesSlice";
 
-
 // Helper to get a color based on a numeric score.
 function getColor(value) {
   const score = Math.max(0, Math.min(1, value));
-  return score > 0.95 ? "#006400"
-    : score > 0.9 ? "#228B22"
-    : score > 0.85 ? "#32CD32"
-    : score > 0.8 ? "#7FFF00"
-    : score > 0.7 ? "#ADFF2F"
-    : score > 0.6 ? "#FFFF66"
-    : score > 0.5 ? "#FFFF00"
-    : score > 0.4 ? "#FFD700"
-    : score > 0.3 ? "#FFA500"
-    : score > 0.2 ? "#FF4500"
-    : score > 0.1 ? "#B22222"
+  return score > 0.95
+    ? "#006400"
+    : score > 0.9
+    ? "#228B22"
+    : score > 0.85
+    ? "#32CD32"
+    : score > 0.8
+    ? "#7FFF00"
+    : score > 0.7
+    ? "#ADFF2F"
+    : score > 0.6
+    ? "#FFFF66"
+    : score > 0.5
+    ? "#FFFF00"
+    : score > 0.4
+    ? "#FFD700"
+    : score > 0.3
+    ? "#FFA500"
+    : score > 0.2
+    ? "#FF4500"
+    : score > 0.1
+    ? "#B22222"
     : "#8B0000";
 }
 
@@ -49,33 +66,50 @@ function convertCoords(coordsArray) {
   }
   // Filter out any element that isn't a valid array with at least two numbers
   return coordsArray
-    .filter(coord => Array.isArray(coord) && coord.length >= 2)
+    .filter((coord) => Array.isArray(coord) && coord.length >= 2)
     .map(([lng, lat]) => ({ lat, lng }));
 }
 
-export default function MapOverlay({ landsatData, recommendations, destination }) {
-  console.log("Recommendations:", recommendations)
+const containerStyle = {
+  width: "100%",
+  height: "100vh",
+};
+
+// 지도 중심은 적당한 위치로 설정합니다.
+const defaultCenter = { lat: 33.775, lng: -84.392 };
+
+// GeoJSON 객체로 Lin
+const lineStringGeoJson = {
+  type: "Feature",
+  geometry: {
+    type: "LineString",
+    coordinates: [
+      [-84.398207, 33.781581],
+      [-84.397779, 33.78158],
+      [-84.397779, 33.781506],
+      [-84.397788, 33.781434],
+      [-84.392024, 33.766031],
+    ],
+  },
+};
+
+export default function MapOverlay({ landsatData, recommendations }) {
   const { user } = useAuth();
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [hoverScore, setHoverScore] = useState(null);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
-  const [mergedGeojson, setMergedGeojson] = useState(null);
   const [routeInfo, setRouteInfo] = useState(null);
-  const [currentUserLocation, setCurrentUserLocation] = useState();
-  const coordinates = useSelector((state) => state.coordinates.coordinates);
-  console.log("Coordinates from Redux:", coordinates); // Check the value
-
-  useEffect(() => {
-    console.log("REDUX Coordinates:", coordinates);
-  }, [coordinates]);
+  const [currentUserLocation, setCurrentUserLocation] = useState(null);
+  const [routeDataLayer, setRouteDataLayer] = useState(null); // 새로운 Data 레이어
+  const [destinationCoord, setDestinationCoord] = useState(null);
+  const [directions, setDirections] = useState(null);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   });
-
-  // Get the user's current location
+  
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -85,19 +119,59 @@ export default function MapOverlay({ landsatData, recommendations, destination }
             lng: position.coords.longitude,
           });
         },
-        (error) => {
-          console.error("Error retrieving user location:", error);
-        }
+        (error) => console.error("Error retrieving user location:", error)
       );
     } else {
       console.error("Geolocation not supported by this browser.");
     }
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const storedDestination = localStorage.getItem("destinationCoord");
+      if (storedDestination) {
+        const parsedDestination = JSON.parse(storedDestination);
+        setDestinationCoord(parsedDestination);
+      }
+    }, 1000); 
+
+    return () => clearInterval(interval);
+  }, []);
+
+  
+  useEffect(() => {
+    if (currentUserLocation && destinationCoord && window.google) {
+      const directionsService = new window.google.maps.DirectionsService();
+
+      const request = {
+        origin: currentUserLocation,
+        destination: destinationCoord,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      };
+
+      directionsService.route(request, (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          setDirections(result);
+        } else {
+          console.error("Error fetching directions:", result);
+        }
+      });
+    }
+  }, [currentUserLocation, destinationCoord]);
+
   const onMapLoad = useCallback((mapInstance) => {
     setMap(mapInstance);
+    // 기존 data 레이어는 walkability overlay용으로 사용됨
     mapInstance.data.setMap(null);
   }, []);
+
+  // 지도 로드시 별도의 Data 레이어를 생성하여 경로(GeoJSON) 렌더링에 사용합니다.
+  useEffect(() => {
+    if (map && window.google) {
+      const dataLayer = new window.google.maps.Data({ map: map });
+      setRouteDataLayer(dataLayer);
+    }
+  }, [map]);
 
   useEffect(() => {
     console.log("Landsat Data:", landsatData);
@@ -113,10 +187,11 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     }
   }, [map]);
 
-  // Set map center based on landsatData if available, otherwise use user's location
+  // 지도 중심을 landsatData나 사용자 위치를 기준으로 설정
   const center = useMemo(() => {
     if (landsatData && landsatData.length > 0) {
-      let sumLat = 0, sumLng = 0;
+      let sumLat = 0,
+        sumLng = 0;
       landsatData.forEach((point) => {
         sumLat += parseFloat(point.lat);
         sumLng += parseFloat(point.lng);
@@ -125,7 +200,6 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     } else if (currentUserLocation) {
       return currentUserLocation;
     } else {
-      // Fallback default if neither landsatData nor geolocation is available
       return { lat: 40.8117, lng: -81.9308 };
     }
   }, [landsatData, currentUserLocation]);
@@ -140,35 +214,45 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     }
   }, [map, landsatData]);
 
-  // Avoid polygons from landsatData (fire polygons)
+  // LANDSAT 데이터로부터 화재 폴리곤 생성 (turf.buffer 이용)
   const firePolygons = landsatData.map((dataPoint) => {
     const point = turf.point([dataPoint.lng, dataPoint.lat]);
     const polygon = turf.buffer(point, 1, { units: "kilometers" });
     return polygon.geometry.coordinates;
   });
 
-  // Wrap polygons as a MultiPolygon for the ORS API
+  // ORS API에 전달할 피해야 할 폴리곤 (MultiPolygon 형식)
   const avoidPolygons = {
     type: "MultiPolygon",
-    coordinates: firePolygons.map(coords => coords) 
+    coordinates: firePolygons.map((coords) => coords),
   };
 
-  // Automatically fetch and render the safe route when a destination is set.
+  // destination이 설정되면 안전 경로(ORS)를 가져와서 GeoJSON 형식으로 Data 레이어에 추가합니다.
   useEffect(() => {
-    if (destination && map && window.google) {
+    if (destinationCoord && map && window.google && routeDataLayer && currentUserLocation) {
       const getSafeRoute = async () => {
         try {
           const routeData = await fetchSafeRouteORS(
             currentUserLocation,
-            destination,
+            destinationCoord,
             avoidPolygons
           );
           setRouteInfo(routeData);
           if (routeData.geometry) {
             const pathCoordinates = decodeORSGeometry(routeData.geometry);
-            new window.google.maps.Polyline({
-              map: map,
-              path: pathCoordinates,
+            const geoJsonRoute = {
+              type: "Feature",
+              geometry: {
+                type: "LineString",
+                // GeoJSON은 [lng, lat] 순서임
+                coordinates: pathCoordinates.map((coord) => [coord.lng, coord.lat]),
+              },
+              properties: {},
+            };
+            // 이전 경로 피처 제거 후 새 경로 추가
+            routeDataLayer.forEach((feature) => routeDataLayer.remove(feature));
+            routeDataLayer.addGeoJson(geoJsonRoute);
+            routeDataLayer.setStyle({
               strokeColor: "#4285F4",
               strokeWeight: 4,
             });
@@ -180,50 +264,9 @@ export default function MapOverlay({ landsatData, recommendations, destination }
       getSafeRoute();
       localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
     }
-  }, [destination, map, currentUserLocation, avoidPolygons]);
+  }, [destinationCoord, map, currentUserLocation, avoidPolygons, routeDataLayer]);
 
-  // --- Get Route Info using fetchRouteInfo ---
-  const handleSafeRoute = async () => {
-    if (!map || !user) return;
-    const originCoords = { lat: 33.6522, lng: -84.3394 }; // 출발지
-    const destinationCoords = { lat: 33.775, lng: -84.396 }; // 목적지
-    // Pass an empty array or no waypoints at all:
-    const routeData = await fetchRouteInfo(originCoords, destinationCoords, [], currentUserLocation);
-    console.log("Route Data:", routeData);
-    
-    // Render the route, etc.
-    if (routeData.encodedPolyline && window.google && map) {
-      const path = window.google.maps.geometry.encoding.decodePath(routeData.encodedPolyline);
-      new window.google.maps.Polyline({
-        map: map,
-        path: path,
-        strokeColor: "#4285F4",
-        strokeWeight: 4,
-      });
-    }
-  };
-  const handleSafeRouteORS = useCallback(async () => {
-    if (!map || !user) return;
-    const originCoords = { lat: 33.6522, lng: -84.3394 };
-    const destinationCoords = { lat: 33.775, lng: -84.396 };
-    // ORS function call
-    const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons);
-    console.log("ORS Route Data:", routeData);
-    
-    if (routeData.geometry && window.google && map) {
-      const pathCoordinates = decodeORSGeometry(routeData.geometry);
-      
-      new window.google.maps.Polyline({
-        map: map,
-        path: pathCoordinates,
-        strokeColor: "#4285F4",
-        strokeWeight: 4,
-      });
-      
-      console.log(`ETA (seconds): ${routeData.eta}`);
-      console.log(`distance (meters): ${routeData.distance}`);
-    }
-  }, [destination, map, currentUserLocation, avoidPolygons]);
+  // CSV를 fetch하여 파싱하는 함수
   async function fetchCsvAndParse(url) {
     const response = await fetch(url);
     if (!response.ok) {
@@ -251,7 +294,8 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     }
     return scoreMap;
   }
-  // Merge PEI scores into GeoJSON features.
+
+  // GeoJSON에 PEI_score 머지
   function mergePEIScoreIntoGeojson(geojson, scoreMap) {
     if (!geojson.features) return geojson;
     geojson.features.forEach((feature) => {
@@ -262,6 +306,7 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     });
     return geojson;
   }
+
   const geoJsonUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.geojson?cachebust=1";
   const csvUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.csv?cachebust=1";
   const toggleGeoJson = async () => {
@@ -281,6 +326,7 @@ export default function MapOverlay({ landsatData, recommendations, destination }
       mergePEIScoreIntoGeojson(geojson, scoreMap);
       map.data.forEach((f) => map.data.remove(f));
       map.data.addGeoJson(geojson);
+      // walkability overlay 스타일: PEI_score 기반 색상 적용
       map.data.setStyle((feature) => {
         const score = feature.getProperty("PEI_score") || 0.0;
         const color = getColor(score);
@@ -296,16 +342,8 @@ export default function MapOverlay({ landsatData, recommendations, destination }
       console.error("Error toggling overlay:", error);
     }
   };
-<<<<<<< HEAD
 
-  // Convert the coordinate array from Redux to Google Maps-friendly format
-  const routePath = useMemo(() => {
-    if (!coordinates || coordinates.length === 0) return [];
-    return convertCoords(coordinates);
-  }, [coordinates]);
 
-=======
->>>>>>> d823b00cf4e810b8ff517fc924a731c38c5b9a6e
   if (!isLoaded) return <p>Loading Map...</p>;
   const commonStyle = {
     background: isButtonHovered ? "rgb(235, 235, 235)" : "#fff",
@@ -332,7 +370,7 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     cursor: "default",
   };
   const storedUser = JSON.parse(localStorage.getItem("user"));
-  const userLocation = storedUser?.userLocation; // Use optional chaining to avoid errors
+  const userLocation = storedUser?.userLocation; // optional chaining 사용
   return (
     <div style={{ flex: 1, position: "relative" }}>
       <div
@@ -367,7 +405,7 @@ export default function MapOverlay({ landsatData, recommendations, destination }
         zoom={15}
         mapContainerStyle={{ width: "100%", height: "100%" }}
       >
-        {/* Render LANDSAT data markers */}
+        {/* LANDSAT 데이터 마커 렌더링 */}
         {landsatData &&
           landsatData.map((dataPoint, index) => (
             <CustomMarker
@@ -379,7 +417,7 @@ export default function MapOverlay({ landsatData, recommendations, destination }
               acqTime={dataPoint.acq_time}
             />
           ))}
-        {/* Render fire polygons */}
+        {/* 화재 폴리곤 렌더링 */}
         {firePolygons.map((poly, idx) => (
           <Polygon
             key={idx}
@@ -393,7 +431,7 @@ export default function MapOverlay({ landsatData, recommendations, destination }
             }}
           />
         ))}
-        {/* Render destination pins for every amenity */}
+        {/* 목적지 주변의 amenity 마커 렌더링 */}
         {recommendations &&
           recommendations.map((place, idx) => {
             const lat = place.geometry.location.lat;
@@ -410,21 +448,31 @@ export default function MapOverlay({ landsatData, recommendations, destination }
             );
           })}
 
-        {/* Render your route from the Redux coordinates */}
-        {routePath.length > 0 && (
-          <Polyline
-            path={routePath}
-            options={{
-              strokeColor: "#4285F4",
-              strokeWeight: 4,
+        {/* 현재 위치 마커 */}
+        {currentUserLocation && (
+          <Marker
+            position={currentUserLocation}
+            label="You"
+            icon={{
+              url: "/current-location.png",
+              scaledSize: new window.google.maps.Size(30, 30),
             }}
           />
         )}
 
-        {/* Optional: If you also want Markers for each point */}
-        {routePath.map((coord, idx) => (
-          <Marker key={idx} position={coord} />
-        ))}
+        {/* 목적지 마커 */}
+        {destinationCoord && (
+          <Marker
+            position={destinationCoord}
+            label="Destination"
+            icon={{
+              url: "/destination.png",
+              scaledSize: new window.google.maps.Size(30, 30),
+            }}
+          />
+        )}
+
+        {directions && <DirectionsRenderer directions={directions} />}
       </GoogleMap>
     </div>
   );

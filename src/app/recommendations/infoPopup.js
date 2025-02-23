@@ -3,7 +3,7 @@ import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { useAuth } from '@/context/AuthContext';
 import { useSelector, useDispatch } from 'react-redux';
 import { addCoordinate, resetCoordinates } from '../features/coordinates/coordinatesSlice';
-
+import { setDestination } from '../features/destination/destinationSlice';
 const InfoPopup = ({ place, geminiExplanation, onClose }) => {
   const { user, loading } = useAuth();
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
@@ -12,7 +12,6 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
   const lat = place.geometry.location.lat;
   const lng = place.geometry.location.lng;
   const destinationCoord = {lat, lng};
-  const coordinates = useSelector((state) => state.coordinates.coordinates);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -20,7 +19,6 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
       if (user) {
         try {
           const userData = await firestoreService.getUserData(user.uid);
-          setUserLocation({lat: userData.address.coordinates.lat, lng: userData.address.coordinates.lng});
           console.log("userLocation", userLocation);
         } catch (error) {
           console.error('Error fetching user data:', error);
@@ -32,12 +30,12 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
 
   useEffect(() => {
     console.log("Route Info", routeInfo);
-    dispatch(resetCoordinates());
-    dispatch(addCoordinate(routeInfo?.geometry?.coordinates));
   }, [routeInfo]);
 
   // Function to handle setting the safe route
   const handleSetSafeRoute = () => {
+    dispatch(setDestination(destinationCoord));
+    localStorage.setItem("destinationCoord", JSON.stringify(destinationCoord));
     const firePolygonsCollection = localStorage.getItem("avoidPolygons");
     fetchSafeRouteORS(userLocation, destinationCoord, firePolygonsCollection, userLocation)
       .then(result => {
@@ -48,12 +46,6 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
       });
   };
   
-
-  useEffect(() => {
-    console.log("routeInfo", routeInfo?.geometry?.coordinates);
-  }, [routeInfo]);
-
-
   return (
     <div
       className="modal-overlay"
