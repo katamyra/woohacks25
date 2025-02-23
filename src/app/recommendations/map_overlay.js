@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { GoogleMap, useJsApiLoader, Polygon } from "@react-google-maps/api";
+import { GoogleMap, useJsApiLoader, Polygon, Marker } from "@react-google-maps/api";
 import * as turf from "@turf/turf";
 import CustomMarker from "./CustomMarker";
 import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { decodeORSGeometry } from "@/utils/decodeORSGeometry";
 
-// Color helper based on walkability score.
+// Helper to get a color based on a numeric score.
 function getColor(value) {
   const score = Math.max(0, Math.min(1, value));
   return score > 0.95 ? "#006400"
@@ -38,7 +38,8 @@ const getOpacity = (confidence) => {
   }
 };
 
-export default function MapOverlay({ landsatData, userLocation, destination }) {
+export default function MapOverlay({ landsatData, recommendations, userLocation, destination }) {
+  console.log("Recommendations:", recommendations)
   const { user } = useAuth();
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -102,6 +103,7 @@ export default function MapOverlay({ landsatData, userLocation, destination }) {
     } else if (currentUserLocation) {
       return currentUserLocation;
     } else {
+      // Fallback default if neither landsatData nor geolocation is available
       return { lat: 40.8117, lng: -81.9308 };
     }
   }, [landsatData, currentUserLocation]);
@@ -116,8 +118,8 @@ export default function MapOverlay({ landsatData, userLocation, destination }) {
     }
   }, [map, landsatData]);
 
-  // Create avoid polygons from the landsatData (fire polygons)
-  const firePolygons = landsatData.map(dataPoint => {
+  // Create avoid polygons from landsatData (fire polygons)
+  const firePolygons = landsatData.map((dataPoint) => {
     const point = turf.point([dataPoint.lng, dataPoint.lat]);
     const polygon = turf.buffer(point, 1, { units: "kilometers" });
     return polygon.geometry.coordinates;
@@ -143,7 +145,6 @@ export default function MapOverlay({ landsatData, userLocation, destination }) {
           setRouteInfo(routeData);
           if (routeData.geometry) {
             const pathCoordinates = decodeORSGeometry(routeData.geometry);
-            // Render the safe route polyline on the map.
             new window.google.maps.Polyline({
               map: map,
               path: pathCoordinates,
@@ -301,6 +302,7 @@ export default function MapOverlay({ landsatData, userLocation, destination }) {
         zoom={15}
         mapContainerStyle={{ width: "100%", height: "100%" }}
       >
+        {/* Render LANDSAT data markers */}
         {landsatData &&
           landsatData.map((dataPoint, index) => (
             <CustomMarker
@@ -313,6 +315,7 @@ export default function MapOverlay({ landsatData, userLocation, destination }) {
             />
           ))}
 
+        {/* Render fire polygons */}
         {firePolygons.map((poly, idx) => (
           <Polygon
             key={idx}
@@ -326,6 +329,23 @@ export default function MapOverlay({ landsatData, userLocation, destination }) {
             }}
           />
         ))}
+
+        {/* Render destination pins for every amenity */}
+        {recommendations &&
+          recommendations.map((place, idx) => {
+            const lat = place.geometry.location.lat;
+            const lng = place.geometry.location.lng;
+            return (
+              <Marker
+                key={`amenity-${idx}`}
+                position={{ lat, lng }}
+                icon={{
+                  url: "/pngegg (1).png",
+                  scaledSize: new window.google.maps.Size(30, 30),
+                }}
+              />
+            );
+          })}
       </GoogleMap>
     </div>
   );
