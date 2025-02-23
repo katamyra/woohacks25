@@ -35,7 +35,8 @@
     "react-dom": "18.2.0",
     "shadcn": "^2.4.0-canary.9",
     "tailwind-merge": "^3.0.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "turf": "^3.0.14"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
