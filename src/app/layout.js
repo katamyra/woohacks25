@@ -23,11 +23,15 @@ export default function RootLayout({ children }) {
       <body className="flex flex-col min-h-screen">
         <AuthProvider>
           <NotificationProvider>
-            <AlertNotifier />
-            <Header />
-            <main className="flex-grow bg-gray-900 text-gray-100">
-              <div className="container mx-auto px-4 py-8">
-                <div className="flex justify-between items-center mb-8">
+            <div className="bg-white text-black">
+              <AlertNotifier />
+            </div>
+            <div className="bg-white text-black">
+              <Header />
+            </div>
+            <main className="flex-grow bg-gray-900 text-gray-100 pb-12">
+              <div className="container mx-auto px-4 py-4 h-full">
+                <div className="flex justify-between items-center mb-4">
                   <ul className="steps steps-neutral flex-1">
                     {steps.map((step, index) => {
                       const isActive = pathname === step.path;
