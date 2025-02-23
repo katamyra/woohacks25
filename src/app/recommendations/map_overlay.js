@@ -130,6 +130,8 @@ export default function MapOverlay({ landsatData, userLocation }) {
     coordinates: firePolygons.map(coords => coords) 
   };
 
+  localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
+
   const requestBody = {
     coordinates: [
       [8.681495, 49.41461],
@@ -171,7 +173,7 @@ export default function MapOverlay({ landsatData, userLocation }) {
     const destinationCoords = { lat: 33.775, lng: -84.396 };
 
     // ORS function call
-    const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons, currentUserLocation);
+    const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons);
     console.log("ORS Route Data:", routeData);
     
     if (routeData.geometry && window.google && map) {

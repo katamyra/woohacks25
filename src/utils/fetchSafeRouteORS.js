@@ -1,27 +1,31 @@
-// fetchSafeRouteORS.js
 import axios from 'axios';
 
-
-export const fetchSafeRouteORS = async (origin, destination, firePolygonsCollection, userLocation) => {
+export const fetchSafeRouteORS = async (origin, destinationCoord, firePolygonsCollection) => {
   try {
     const orsApiKey = process.env.NEXT_PUBLIC_ORS_API_KEY;
     if (!orsApiKey) {
       throw new Error("ORS API key is missing");
     }
 
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const userLocation = storedUser?.userLocation;
+    const avoidPolygons = JSON.parse(localStorage.getItem("avoidPolygons"));
+
+    if (!userLocation) {
+      throw new Error("User location is missing in localStorage");
+    }
+
     console.log("Fire Polygons Collection:", JSON.stringify(firePolygonsCollection, null, 2));
 
     const requestBody = {
       coordinates: [
-        [userLocation.lng, userLocation.lat], // Georgia State Capitol
-        [-83.3773, 33.9480]  // UGA
-      ]
-      ,
+        [userLocation.lng, userLocation.lat], // User's current location
+        [destinationCoord.lng, destinationCoord.lat]    // Destination (UGA in your case)
+      ],
       options: {
-        avoid_polygons: firePolygonsCollection
+        avoid_polygons: avoidPolygons
       }
-    }
-    // console.log(JSON.stringify(requestBody, null, 2)); // Log the request body
+    };
 
     const url = `https://api.openrouteservice.org/v2/directions/driving-car/geojson`;
 
