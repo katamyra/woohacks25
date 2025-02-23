@@ -74,27 +74,57 @@ const RecommendationsPage = () => {
     fetchExplanations();
   }, [recommendations, review]);
 
-  // Fetch LANDSAT data
+  // Helper functions to calculate distance
+  function deg2rad(deg) {
+    return deg * (Math.PI / 180);
+  }
+
+  function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(deg2rad(lat1)) *
+        Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in km
+  }
+
+  // Define the "altnata" location as Atlanta's coordinates
+  const targetLat = 33.7490; // 애틀랜타의 위도
+  const targetLng = -84.3880; // 애틀랜타의 경도
+  const thresholdDistanceKm = 50; // 예: 50km 이내의 데이터 포인트만 포함
+
   useEffect(() => {
     const fetchLandsatData = async () => {
       try {
         const response = await axios.get('/api/landsat'); // API route
         const data = response.data.data.map(item => ({
-          lat: parseFloat(item.latitude), // Convert latitude to number
-          lng: parseFloat(item.longitude), // Convert longitude to number
-          confidence: item.confidence, // Keep confidence as is
-          acq_date: item.acq_date, // Optional: keep other properties if needed
+          lat: parseFloat(item.latitude),
+          lng: parseFloat(item.longitude),
+          confidence: item.confidence,
+          acq_date: item.acq_date,
           acq_time: item.acq_time,
           daynight: item.daynight,
           satellite: item.satellite,
-          // Add any other properties you want to keep
         }));
-        setLandsatData(data); // Store LANDSAT data
-        console.log('Landsat Data:', data); // Log the data
+
+        // Filter the data to include only points near "altnata"
+        const filteredData = data.filter(item => {
+          const distance = getDistanceFromLatLonInKm(item.lat, item.lng, targetLat, targetLng);
+          return distance < thresholdDistanceKm;
+        });
+
+        setLandsatData(filteredData); // 필터링된 데이터 설정
+        console.log('Filtered Landsat Data:', filteredData);
       } catch (error) {
         console.error('Error fetching LANDSAT data:', error);
       }
     };
+
     fetchLandsatData();
   }, []);
 

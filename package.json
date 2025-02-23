@@ -22,7 +22,7 @@
     "axios": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "dialogflow": "^1.2.0",
+    "dialogflow": "^4.0.3",
     "firebase": "latest",
     "firebase-admin": "latest",
     "fs": "^0.0.1-security",
