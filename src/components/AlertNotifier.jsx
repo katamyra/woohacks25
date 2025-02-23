@@ -14,9 +14,9 @@ export default function AlertNotifier() {
 
   // 3 predefined notifications that will be cycled through on each interval
   const predefinedNotifications = [
-    { message: 'Predefined Alert 1: High Priority Alert' },
-    { message: 'Predefined Alert 2: System Warning' },
-    { message: 'Predefined Alert 3: Maintenance Reminder' },
+    { message: 'ALERT: Wildfire detected 2 miles north of your location.' },
+    { message: 'WARNING: High fire danger today. Red flag conditions with strong winds.' },
+    { message: 'NOTICE: Planned controlled burn in your area tomorrow. No action needed.' },
   ];
 
   // A ref to keep track of which notification to display next
@@ -24,8 +24,14 @@ export default function AlertNotifier() {
 
   useEffect(() => {
     const interval = setInterval(() => {
+      // Stop after showing all 3 notifications
+      if (notificationIndex.current >= predefinedNotifications.length) {
+        clearInterval(interval);
+        return;
+      }
+
       // Get the current predefined notification
-      const current = predefinedNotifications[notificationIndex.current % predefinedNotifications.length];
+      const current = predefinedNotifications[notificationIndex.current];
 
       // Create a new notification object with an id and timestamp
       const newNotification = {
@@ -94,4 +100,4 @@ export default function AlertNotifier() {
       </button>
     </div>
   );
-} 
+}
