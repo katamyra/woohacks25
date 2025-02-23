@@ -1,6 +1,5 @@
 // fetchSafeRouteORS.js
 import axios from 'axios';
-import turf from 'turf';
 
 
 
@@ -11,9 +10,9 @@ export const fetchSafeRouteORS = async (origin, destination, firePolygonsCollect
       throw new Error("ORS API key is missing");
     }
 
-    // Log the firePolygonsCollection to inspect its structure
     console.log("Fire Polygons Collection:", JSON.stringify(firePolygonsCollection, null, 2));
 
+    // Example request body: for reference for the developers
     // const requestBody = {
     //   coordinates: [
     //     [8.681495, 49.41461],
