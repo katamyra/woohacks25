@@ -36,7 +36,7 @@ export default function RootLayout({ children }) {
             <div className="bg-white text-black">
               <Header />
             </div>
-            <main className="flex-grow bg-gray-900 text-gray-100 pb-12">
+            <main className="flex-grow bg-gray-800 text-gray-100 pb-12">
               <div className="container mx-auto px-4 py-4 h-full">
                 <div className="flex justify-between items-center mb-4">
                   <StepsProgress steps={steps} currentPath={pathname} />
