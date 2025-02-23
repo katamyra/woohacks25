@@ -2,7 +2,7 @@ export const fetchRecommendations = async (review, { address, lng, lat }) => {
     const reviewText = `Below is a summary about various pieces of information about a person(s) who is in a disaster survival scenario. 
     They are displaced due to a fire hazard. Your task is to generate a query to be sent to Google Maps API for several useful amenities personalized 
     to this person's needs, such as medical attention, resources, and shelter, as well as whatever preferences they have, as described by the summary below.
-    Consequently, the query you send to Google Maps API should return 12-24 applicable amenities. Again, it is important that this query is tailored to
+    Consequently, the query you send to Google Maps API should return relevant, applicable amenities. Again, it is important that this query is tailored to
     the specific needs of the person the summary is describing, including factoring in mode choice, distance to the amenity, fitness level and age and injury status,
     maximum desired travel distance, medication needed and special needs to take into consideration which amenities to query for. 
     Note: An example of this would be including stores providing diapers and baby formula if it is indicated that the user is accompanied by infants.
@@ -13,8 +13,7 @@ export const fetchRecommendations = async (review, { address, lng, lat }) => {
     Following the above guidelines, also include a minimum of 3 amenities of each of the following categories:
     "Healthcare" (which includes things like urgent care, hospitals, doctors, etc. NOT INCLUDING VETERINARIANS), "shelter", "food/water". 
     According to the amenities you think should also be included based on the user's background, add additional categories as needed.
-
-    Additionally, include only amenities that are 
+    Additionally, only include amenities that are within the distance specificed by the user.
 
     User location: Longitude: ${lng}, Latitude: ${lat}.
     
@@ -103,9 +102,11 @@ export const fetchRecommendations = async (review, { address, lng, lat }) => {
     WARNING: For multiple keywords, put "+OR+" in between each keyword set instead of "|"; example: &keyword=urgent+care+OR+medical+clinic+OR+homeless+shelter+OR+food+bank
     FORMAT:
     ==================
-    https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=realAPIKey&location={LATITUDE},{LONGITUDE}&radius={RADIUS_IN_METERS}&type={PLACE_TYPE}&keyword={SEARCH_KEYWORD}
+    https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=YOUR_API_KEY&location={LATITUDE},{LONGITUDE}&radius={RADIUS_IN_METERS}&type={PLACE_TYPE}&keyword={SEARCH_KEYWORD}
     ==================
+    WARNING: the "YOUR_API_KEY" is a placeholder for the key. Ensure that every Url you generate has the key set to "YOUR_API_KEY" without the quotes.
     `;
+
     console.log('Sending review text:', reviewText);
 
     try {

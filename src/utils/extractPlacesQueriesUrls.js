@@ -10,7 +10,7 @@ export function extractUrls(text) {
 export async function sendMultipleRequests(urls) {
     const placesApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     const validUrls = urls.map((url) =>
-        url.replace("realAPIKey", placesApiKey)  // Replace the placeholder
+        url.replace("YOUR_API_KEY", placesApiKey)  // Replace the placeholder
     );
     const requests = validUrls.map((url) => axios.get(url));
   const responses = await Promise.all(requests);
