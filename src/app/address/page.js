@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react';
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Marker, useJsApiLoader } from '@react-google-maps/api';
 import { useAuth } from '@/context/AuthContext';
 import { firestoreService } from '@/firebase/services/firestore';
 import { useRouter } from 'next/navigation';
@@ -99,6 +99,11 @@ export default function AddressPage() {
         }
     };
 
+    const { isLoaded } = useJsApiLoader({
+        id: 'google-map-script',
+        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    });
+
     return (
         <div className="flex h-screen bg-gray-100">
             <div className="w-1/2 p-4 bg-gray-800 text-white shadow-lg">
@@ -132,17 +137,15 @@ export default function AddressPage() {
                     Save & Continue
                 </button>
             </div>
-            {location && (
+            {isLoaded && location && (
                 <div className="w-1/2">
-                    <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
-                        <GoogleMap
-                            mapContainerStyle={{ width: '100%', height: '100%' }}
-                            center={location}
-                            zoom={14}
-                        >
-                            <Marker position={location} />
-                        </GoogleMap>
-                    </LoadScript>
+                    <GoogleMap
+                        mapContainerStyle={{ width: '100%', height: '100%' }}
+                        center={location}
+                        zoom={14}
+                    >
+                        <Marker position={location} />
+                    </GoogleMap>
                 </div>
             )}
         </div>

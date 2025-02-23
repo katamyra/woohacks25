@@ -57,39 +57,41 @@ export default function AlertNotifier() {
     return () => clearInterval(interval);
   }, [addNotification, predefinedNotifications]);
 
+  if (!visibleAlert) return null;
+
+  // Add this check to prevent server/client mismatch
+  if (typeof window === 'undefined') return null;
+
   return (
-    <>
-      {visibleAlert && (
-        <div
-          role="alert"
-          className="alert alert-info fixed top-4 right-4 z-[10000] shadow-lg w-40 flex items-center justify-between rounded-lg p-2"
+    <div
+      role="alert"
+      className={`alert alert-${visibleAlert.type} fixed top-4 right-4 z-[10000] shadow-lg 
+        w-64 flex items-center justify-between rounded-lg min-h-[70px] py-5`}
+    >
+      <div className="flex items-center space-x-2 overflow-hidden">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          className="stroke-info h-8 w-8 shrink-0"
         >
-          <div className="flex items-center space-x-1 overflow-hidden">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              className="stroke-info h-6 w-6 shrink-0"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
-            </svg>
-            <span className="text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-              {visibleAlert.message}
-            </span>
-          </div>
-          <button
-            onClick={() => setVisibleAlert(null)}
-            className="btn btn-xs btn-circle"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-    </>
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          ></path>
+        </svg>
+        <span className="text-base whitespace-normal overflow-auto">
+          {visibleAlert.message}
+        </span>
+      </div>
+      <button
+        onClick={() => setVisibleAlert(null)}
+        className="btn btn-sm btn-circle ml-2"
+      >
+        ✕
+      </button>
+    </div>
   );
 } 
