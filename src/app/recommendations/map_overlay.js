@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -14,9 +14,9 @@ import { calculateWeightedPEIScore } from "@/utils/calculateLinestringPEI";
 import { useAuth } from "@/context/AuthContext";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { decodeORSGeometry } from "@/utils/decodeORSGeometry";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { resetCoordinates, addCoordinate } from "../features/coordinates/coordinatesSlice";
+import { setDestinationCoord, clearDestinationCoord } from "../features/destination/destinationSlice";
 
 // Helper to get a color based on a numeric score.
 function getColor(value) {
@@ -75,10 +75,8 @@ const containerStyle = {
   height: "100vh",
 };
 
-// 지도 중심은 적당한 위치로 설정합니다.
 const defaultCenter = { lat: 33.775, lng: -84.392 };
 
-// GeoJSON 객체로 Lin
 const lineStringGeoJson = {
   type: "Feature",
   geometry: {
@@ -95,15 +93,20 @@ const lineStringGeoJson = {
 
 export default function MapOverlay({ landsatData, recommendations }) {
   const { user } = useAuth();
+  const dispatch = useDispatch();
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [hoverScore, setHoverScore] = useState(null);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [routeInfo, setRouteInfo] = useState(null);
   const [currentUserLocation, setCurrentUserLocation] = useState(null);
-  const [routeDataLayer, setRouteDataLayer] = useState(null); // 새로운 Data 레이어
+  const [routeDataLayer, setRouteDataLayer] = useState(null); 
   const [destinationCoord, setDestinationCoord] = useState(null);
   const [directions, setDirections] = useState(null);
+  const [hasZoomed, setHasZoomed] = useState(false); // Track if zoom has occurred
+  const userInteracted = useRef(false); // Track user interaction
+
+  const selectedDestinationCoord = useSelector((state) => state.destination.destinationCoord);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -161,11 +164,10 @@ export default function MapOverlay({ landsatData, recommendations }) {
 
   const onMapLoad = useCallback((mapInstance) => {
     setMap(mapInstance);
-    // 기존 data 레이어는 walkability overlay용으로 사용됨
     mapInstance.data.setMap(null);
+    mapInstance.addListener('click', handleMapClick); // Listen for user clicks
   }, []);
 
-  // 지도 로드시 별도의 Data 레이어를 생성하여 경로(GeoJSON) 렌더링에 사용합니다.
   useEffect(() => {
     if (map && window.google) {
       const dataLayer = new window.google.maps.Data({ map: map });
@@ -187,7 +189,6 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [map]);
 
-  // 지도 중심을 landsatData나 사용자 위치를 기준으로 설정
   const center = useMemo(() => {
     if (landsatData && landsatData.length > 0) {
       let sumLat = 0,
@@ -214,28 +215,24 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [map, landsatData]);
 
-  // LANDSAT 데이터로부터 화재 폴리곤 생성 (turf.buffer 이용)
   const firePolygons = landsatData.map((dataPoint) => {
     const point = turf.point([dataPoint.lng, dataPoint.lat]);
     const polygon = turf.buffer(point, 1, { units: "kilometers" });
     return polygon.geometry.coordinates;
   });
 
-  // ORS API에 전달할 피해야 할 폴리곤 (MultiPolygon 형식)
   const avoidPolygons = {
     type: "MultiPolygon",
     coordinates: firePolygons.map((coords) => coords),
   };
 
-  // destination이 설정되면 안전 경로(ORS)를 가져와서 GeoJSON 형식으로 Data 레이어에 추가합니다.
   useEffect(() => {
-    if (destinationCoord && map && window.google && routeDataLayer && currentUserLocation) {
+    if (selectedDestinationCoord && map && window.google && routeDataLayer && currentUserLocation) {
       const getSafeRoute = async () => {
         try {
           const routeData = await fetchSafeRouteORS(
             currentUserLocation,
-            destinationCoord,
-            avoidPolygons
+            selectedDestinationCoord
           );
           setRouteInfo(routeData);
           if (routeData.geometry) {
@@ -244,12 +241,10 @@ export default function MapOverlay({ landsatData, recommendations }) {
               type: "Feature",
               geometry: {
                 type: "LineString",
-                // GeoJSON은 [lng, lat] 순서임
                 coordinates: pathCoordinates.map((coord) => [coord.lng, coord.lat]),
               },
               properties: {},
             };
-            // 이전 경로 피처 제거 후 새 경로 추가
             routeDataLayer.forEach((feature) => routeDataLayer.remove(feature));
             routeDataLayer.addGeoJson(geoJsonRoute);
             routeDataLayer.setStyle({
@@ -264,9 +259,15 @@ export default function MapOverlay({ landsatData, recommendations }) {
       getSafeRoute();
       localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
     }
-  }, [destinationCoord, map, currentUserLocation, avoidPolygons, routeDataLayer]);
+  }, [selectedDestinationCoord, map, currentUserLocation, avoidPolygons, routeDataLayer]);
 
-  // CSV를 fetch하여 파싱하는 함수
+  // Clear route when destination is cleared
+  useEffect(() => {
+    if (!selectedDestinationCoord && routeDataLayer) {
+      routeDataLayer.forEach((feature) => routeDataLayer.remove(feature));
+    }
+  }, [selectedDestinationCoord, routeDataLayer]);
+
   async function fetchCsvAndParse(url) {
     const response = await fetch(url);
     if (!response.ok) {
@@ -295,7 +296,6 @@ export default function MapOverlay({ landsatData, recommendations }) {
     return scoreMap;
   }
 
-  // GeoJSON에 PEI_score 머지
   function mergePEIScoreIntoGeojson(geojson, scoreMap) {
     if (!geojson.features) return geojson;
     geojson.features.forEach((feature) => {
@@ -326,7 +326,6 @@ export default function MapOverlay({ landsatData, recommendations }) {
       mergePEIScoreIntoGeojson(geojson, scoreMap);
       map.data.forEach((f) => map.data.remove(f));
       map.data.addGeoJson(geojson);
-      // walkability overlay 스타일: PEI_score 기반 색상 적용
       map.data.setStyle((feature) => {
         const score = feature.getProperty("PEI_score") || 0.0;
         const color = getColor(score);
@@ -343,6 +342,36 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   };
 
+  // Auto-zoom and center only when destination changes
+  useEffect(() => {
+    if (map && selectedDestinationCoord && window.google) {
+      const bounds = new window.google.maps.LatLngBounds();
+
+      // Include current user location and destination in the bounds
+      if (currentUserLocation) {
+        bounds.extend(new window.google.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng));
+      }
+      bounds.extend(new window.google.maps.LatLng(selectedDestinationCoord.lat, selectedDestinationCoord.lng));
+
+      // Apply fitBounds ONLY when the destination changes and has not zoomed yet
+      if (!hasZoomed && !userInteracted.current) {
+        map.fitBounds(bounds);
+        setHasZoomed(true); // Set zoomed state to true
+      }
+    }
+  }, [selectedDestinationCoord, currentUserLocation, map]);
+
+  // Reset zoom state when destination is cleared
+  useEffect(() => {
+    if (!selectedDestinationCoord) {
+      setHasZoomed(false); // Reset zoom state when destination is cleared
+    }
+  }, [selectedDestinationCoord]);
+
+  // Track user interaction with the map
+  const handleMapClick = () => {
+    userInteracted.current = true; // User has interacted with the map
+  };
 
   if (!isLoaded) return <p>Loading Map...</p>;
   const commonStyle = {
@@ -405,7 +434,6 @@ export default function MapOverlay({ landsatData, recommendations }) {
         zoom={15}
         mapContainerStyle={{ width: "100%", height: "100%" }}
       >
-        {/* LANDSAT 데이터 마커 렌더링 */}
         {landsatData &&
           landsatData.map((dataPoint, index) => (
             <CustomMarker
@@ -417,7 +445,6 @@ export default function MapOverlay({ landsatData, recommendations }) {
               acqTime={dataPoint.acq_time}
             />
           ))}
-        {/* 화재 폴리곤 렌더링 */}
         {firePolygons.map((poly, idx) => (
           <Polygon
             key={idx}
@@ -431,7 +458,6 @@ export default function MapOverlay({ landsatData, recommendations }) {
             }}
           />
         ))}
-        {/* 목적지 주변의 amenity 마커 렌더링 */}
         {recommendations &&
           recommendations.map((place, idx) => {
             const lat = place.geometry.location.lat;
@@ -448,11 +474,10 @@ export default function MapOverlay({ landsatData, recommendations }) {
             );
           })}
 
-        {/* 현재 위치 마커 */}
         {currentUserLocation && (
           <Marker
             position={currentUserLocation}
-            label="You"
+            label="Me"
             icon={{
               url: "/current-location.png",
               scaledSize: new window.google.maps.Size(30, 30),
@@ -460,10 +485,9 @@ export default function MapOverlay({ landsatData, recommendations }) {
           />
         )}
 
-        {/* 목적지 마커 */}
-        {destinationCoord && (
+        {selectedDestinationCoord && (
           <Marker
-            position={destinationCoord}
+            position={selectedDestinationCoord}
             label="Destination"
             icon={{
               url: "/destination.png",
