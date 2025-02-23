@@ -69,6 +69,7 @@ module.exports = {
         primary: "#0ea5e9", // Tailwind sky-500
         "primary-focus": "#0284c7", // Tailwind sky-600
         "primary-content": "#ffffff",
+        "base-100": "#3b3b3b",
       },
     }],
   },
