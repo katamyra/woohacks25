@@ -192,6 +192,7 @@ const RecommendationsPage = () => {
         <div style={mapStyle}>
           <MapOverlay
             landsatData={landsatData}
+            recommendations={recommendations}
             userLocation={{ lat, lng }}
             destination={destination}
           />

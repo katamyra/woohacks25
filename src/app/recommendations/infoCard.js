@@ -41,7 +41,7 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user, onSetDestinati
         <div
           style={{
             position: "absolute",
-            top: "5px",
+            bottom: "5px",
             right: "5px",
             backgroundColor: "#007BFF",
             color: "#fff",
