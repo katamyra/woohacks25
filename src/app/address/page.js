@@ -10,8 +10,8 @@ export default function AddressPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [address, setAddress] = useState('');
-  // Default to College of Wooster (ensure correct longitude sign if needed)
-  const [location, setLocation] = useState({ lat: 40.8117, lng: -81.9308 });
+  // Start with a null location instead of default coordinates
+  const [location, setLocation] = useState(null);
 
   // Load Google Maps API
   const { isLoaded } = useJsApiLoader({
@@ -28,6 +28,7 @@ export default function AddressPage() {
         },
         () => {
           alert('Unable to retrieve your location');
+          // Fallback to College of Wooster if geolocation fails
           setLocation({ lat: 40.8117, lng: -81.9308 });
         }
       );
@@ -76,8 +77,7 @@ export default function AddressPage() {
           setLocation({ lat: latitude, lng: longitude });
 
           const geocoder = new window.google.maps.Geocoder();
-          const latlng = { lat: latitude, lng: longitude };
-          geocoder.geocode({ location: latlng }, (results, status) => {
+          geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
             if (status === 'OK' && results[0]) {
               setAddress(results[0].formatted_address);
             } else {

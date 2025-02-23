@@ -158,8 +158,8 @@ const RecommendationsPage = () => {
 
   return (
     <div style={containerStyle}>
-      <div style={galleryStyle}>
-        <button
+      <div style={galleryStyle} className="bg-gray-800">
+        <button 
           onClick={toggleGallery}
           style={{
             marginBottom: "10px",
