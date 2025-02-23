@@ -96,7 +96,6 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
     }
   }, [map, landsatData]);
 
-  // 화재 폴리곤 배열 생성
   const firePolygons = landsatData.map(dataPoint => {
     const point = turf.point([dataPoint.lng, dataPoint.lat]);
     const polygon = turf.buffer(point, 1, { units: 'kilometers' });
@@ -104,13 +103,12 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
     return polygon.geometry.coordinates; // Return the coordinates of the polygon
   });
 
-  // MultiPolygon 형식으로 래핑
+  // wrapping MultiPolygon
   const avoidPolygons = {
     type: "MultiPolygon",
-    coordinates: firePolygons.map(coords => coords) // Directly use coords without additional wrapping
+    coordinates: firePolygons.map(coords => coords) 
   };
 
-  // 예시로 사용
   const requestBody = {
     coordinates: [
       [8.681495, 49.41461],
@@ -151,14 +149,13 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
     const originCoords = { lat: 33.6522, lng: -84.3394 };
     const destinationCoords = { lat: 33.775, lng: -84.396 };
 
-    // ORS 함수 호출
+    // ORS function call
     const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons, userLocation);
     console.log("ORS Route Data:", routeData);
     
     if (routeData.geometry && window.google && map) {
       const pathCoordinates = decodeORSGeometry(routeData.geometry);
       
-      // 안전 경로에 대한 새로운 폴리라인을 맵에 생성하고 표시
       new window.google.maps.Polyline({
         map: map,
         path: pathCoordinates,
@@ -166,7 +163,6 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
         strokeWeight: 4,
       });
       
-      // ETA 및 거리 표시 (예: 콘솔 또는 UI에)
       console.log(`ETA (초): ${routeData.eta}`);
       console.log(`거리 (미터): ${routeData.distance}`);
     }
