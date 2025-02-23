@@ -1,4 +1,4 @@
-# BuzzLine
+[# BuzzLine
 
 A Next.js-based platform designed to support users during emergencies (e.g., fire hazards) by providing targeted recommendations, safe travel routes, and real-time mapping overlays for walakabilities.
 
@@ -301,32 +301,3 @@ This component shows global notifications on the screen, powered by the Notifica
 
 *Note:* Additional UI elements such as `InfoCard`, `SortDropdown`, and `FilterDropdown` appear within the gallery and user preferences sections for a richer user experience.
 
----
-
-## Configuration Files
-
-The `package.json` file holds essential information about the project, including its dependencies and the scripts used for development, building, and running. In `next.config.mjs`, you can fine-tune Next.js settings such as custom headers for CORS, experimental features, and webpack fallbacks or module transpilation. 
-
-`jsconfig.json` defines module path aliases for cleaner import paths, while `.gitignore` prevents files like `node_modules` and environment variables from being tracked by Git. The project is released under the MIT License, as specified in the `LICENSE` file.
-
----
-
-## Usage
-
-1. **Set Up Environment Variables**  
-   Make sure you have defined environment variables for Firebase (`NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, etc.), Google APIs (`NEXT_PUBLIC_GEMINI_API_KEY`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, etc.), Dialogflow credentials, and the OpenRouteService (`NEXT_PUBLIC_ORS_API_KEY`).
-
-2. **Install Dependencies**  
-   After cloning the repository, run `npm install` or `yarn install` to add all required packages.
-
-3. **Start the Development Server**  
-   Use `npm run dev` or `yarn dev` to begin development on [http://localhost:3000](http://localhost:3000).
-
-4. **Deploy**  
-   For production, follow the standard Next.js deployment procedure or use Vercel for a smooth experience.
-
----
-
-## License
-
-This project is open source and offered under the [MIT License](./LICENSE).
