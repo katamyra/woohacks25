@@ -1,4 +1,4 @@
-export const fetchRecommendations = async (review, address, lng, lat) => {
+export const fetchRecommendations = async (review, { address, lng, lat }) => {
     const reviewText = `Below is a summary about various pieces of information about a person(s) who is in a disaster survival scenario. 
     They are displaced due to a fire hazard. Your task is to generate a query to be sent to Google Maps API for several useful amenities personalized 
     to this person's needs, such as medical attention, resources, and shelter, as well as whatever preferences they have, as described by the summary below.
@@ -103,8 +103,7 @@ export const fetchRecommendations = async (review, address, lng, lat) => {
     WARNING: For multiple keywords, put "+OR+" in between each keyword set instead of "|"; example: &keyword=urgent+care+OR+medical+clinic+OR+homeless+shelter+OR+food+bank
     FORMAT:
     ==================
-    https://maps.googleapis.com/maps/api/place/nearbysearch/json
-    ?key=realAPIKey&location={LATITUDE},{LONGITUDE}&radius={RADIUS_IN_METERS}&type={PLACE_TYPE}&keyword={SEARCH_KEYWORD}
+    https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=realAPIKey&location={LATITUDE},{LONGITUDE}&radius={RADIUS_IN_METERS}&type={PLACE_TYPE}&keyword={SEARCH_KEYWORD}
     ==================
     `;
     console.log('Sending review text:', reviewText);
@@ -125,8 +124,9 @@ export const fetchRecommendations = async (review, address, lng, lat) => {
         }
 
         const data = await response.json();
-        console.log('Received data:', data);
-        return data;
+        const flattenedResults = data.results.flatMap(queryResult => queryResult.results || []);
+        console.log('Received recommendations (flattened):', flattenedResults);
+        return flattenedResults;
     } catch (error) {
         console.error('Error fetching Places API query:', error);
         throw error;
