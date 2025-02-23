@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import MapOverlay from "./map_overlay";
+import Gallery from "./gallery";
 import { useAuth } from '@/context/AuthContext';
 import { firestoreService } from '@/firebase/services/firestore';
 import { fetchRecommendations } from '@/utils/fetchRecommendations';
@@ -15,6 +16,8 @@ const RecommendationsPage = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [landsatData, setLandsatData] = useState([]);
   const { user, loading } = useAuth();
+
+  const [geminiExplanations, setGeminiExplanations] = useState({});
 
   // Firestore fetch 
   useEffect(() => {
@@ -40,7 +43,7 @@ const RecommendationsPage = () => {
     const fetchInitialRecommendations = async () => {
       if (review && address && lng && lat) {
         try {
-          const data = await fetchRecommendations(review, address, lng, lat);
+          const data = await fetchRecommendations(review, { address, lng, lat });
           setRecommendations(data);
         } catch (error) {
           console.error('Error fetching recommendations:', error);
@@ -49,6 +52,27 @@ const RecommendationsPage = () => {
     };
     fetchInitialRecommendations();
   }, [review, address, lng, lat]);
+
+  useEffect(() => {
+    const fetchExplanations = async () => {
+      if (recommendations.length > 0) {
+        try {
+          const explanations = {};
+          for (const place of recommendations) {
+            const response = await axios.post("/api/generate-explanations", {
+              review,
+              place,
+            });
+            explanations[place.place_id] = response.data.explanation;
+          }
+          setGeminiExplanations(explanations);
+        } catch (error) {
+          console.error("Error fetching Gemini explanations:", error);
+        }
+      }
+    };
+    fetchExplanations();
+  }, [recommendations, review]);
 
   // Fetch LANDSAT data
   useEffect(() => {
@@ -107,28 +131,32 @@ const RecommendationsPage = () => {
       <div style={galleryStyle}>
         <button
           onClick={toggleGallery}
-          style={{ marginBottom: "10px", backgroundColor: "#444", color: "#fff", border: "none", padding: "10px" }}
+          style={{
+            marginBottom: "10px",
+            backgroundColor: "#444",
+            color: "#fff",
+            border: "none",
+            padding: "10px"
+          }}
         >
           {galleryExpanded ? "Collapse Gallery" : "Expand Gallery"}
         </button>
 
         <h2>Recommended Locations</h2>
-        <div>
-          {recommendations.length > 0 ? (
-            recommendations.map((place, index) => (
-              <p key={index}>
-                {place.place} - Lat: {place.lat}, Lng: {place.lng}
-              </p>
-            ))
-          ) : (
-            <p>No recommendations available yet.</p>
-          )}
-        </div>
+        {/* Render the Gallery component */}
+        <Gallery 
+          recommendations={recommendations} 
+          userLocation={{ lat, lng }} 
+          geminiExplanations={geminiExplanations}
+        />
       </div>
 
       {!galleryExpanded && (
         <div style={mapStyle}>
-          <MapOverlay landsatData={landsatData} recommendations={recommendations} />
+          <MapOverlay 
+            landsatData={landsatData} 
+            recommendations={recommendations} 
+          />
         </div>
       )}
     </div>
