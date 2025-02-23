@@ -51,7 +51,7 @@ This project is built using Next.js and modern React tools. It assists users aff
 > **Google Maps API** — Interactive maps integration  
 > **Google Places API** — Detailed place information retrieval  
 > **Google Directions API** — Optimized routing and navigation  
-> **Dialogflow** — Conversational AI platform for natural language interactions
+> **Google Dialogflow** — Conversational AI platform for natural language interactions
 
 ---
 
