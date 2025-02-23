@@ -56,7 +56,7 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user, onSetDestinati
         <h3 style={{ marginTop: "0.5rem" }}>{place.name}</h3>
         <p style={{ fontSize: "12px", color: "#555" }}>
           {routeInfo.distance
-            ? `${routeInfo.distance} miles away`
+            ? `${(routeInfo.distance / 1609.34).toFixed(1)} miles away`
             : "Calculating distance..."}
           {" • "}
           {place.vicinity}
