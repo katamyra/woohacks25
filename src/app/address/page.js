@@ -1,6 +1,14 @@
 "use client"
+<<<<<<< Updated upstream
 import { useState } from 'react';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+=======
+import { useState, useEffect } from 'react';
+import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 import { useAuth } from '@/context/AuthContext';
 import { firestoreService } from '@/firebase/services/firestore';
 import { useRouter } from 'next/navigation';
@@ -9,14 +17,70 @@ export default function AddressPage() {
     const { user } = useAuth();
     const router = useRouter();
     const [address, setAddress] = useState('');
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
     const [location, setLocation] = useState({ lat: 37.7749, lng: -122.4194 }); // Default to San Francisco
+=======
+=======
+>>>>>>> Stashed changes
+    const [location, setLocation] = useState(null);
+
+    // Get the Google Maps API loaded
+    const { isLoaded } = useJsApiLoader({
+        id: 'google-map-script',
+        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    });
+
+    // On mount, set the initial location via geolocation
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    setLocation({ lat: latitude, lng: longitude });
+                }
+            );
+        } else {
+            alert('Geolocation is not supported by this browser.');
+            setLocation({ lat: 40.8117, lng: 81.9308 });
+        }
+    }, []);
+>>>>>>> Stashed changes
+
+    // Once Google Maps API is loaded and location is set, reverse geocode to autofill address
+    useEffect(() => {
+        if (isLoaded && location && address === '') {
+            const geocoder = new window.google.maps.Geocoder();
+            geocoder.geocode({ location }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                    setAddress(results[0].formatted_address);
+                } else {
+                    alert('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+    }, [isLoaded, location, address]);
+
+    // Once Google Maps API is loaded and location is set, reverse geocode to autofill address
+    useEffect(() => {
+        if (isLoaded && location && address === '') {
+            const geocoder = new window.google.maps.Geocoder();
+            geocoder.geocode({ location }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                    setAddress(results[0].formatted_address);
+                } else {
+                    alert('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+    }, [isLoaded, location, address]);
 
     const handleAddressChange = (event) => {
         setAddress(event.target.value);
     };
 
-    const handleApply = async () => {
-        // Geocode the address to get latitude and longitude
+    // Called when the user presses Enter in the address input field
+    const handleApply = () => {
         const geocoder = new window.google.maps.Geocoder();
         geocoder.geocode({ address }, (results, status) => {
             if (status === 'OK' && results[0]) {
@@ -79,24 +143,18 @@ export default function AddressPage() {
                     className="input input-bordered w-full mb-4"
                     value={address}
                     onChange={handleAddressChange}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleApply(); }}
                 />
                 <button
                     className="btn w-full mb-4"
-                    style={{ backgroundColor: '#176BEF', color: 'white' }}
-                    onClick={handleApply}
-                >
-                    Apply
-                </button>
-                <button
-                    className="btn w-full mb-4"
-                    style={{ backgroundColor: '#FF3E30', color: 'white' }}
+                    style={{ backgroundColor: '#00A1F1', color: 'white' }}
                     onClick={handleUseCurrentLocation}
                 >
                     Use My Current Location
                 </button>
                 <button
                     className="btn w-full"
-                    style={{ backgroundColor: '#179C52', color: 'white' }}
+                    style={{ backgroundColor: '#7CBB00', color: 'white' }}
                     onClick={handleSubmit}
                 >
                     Save & Continue
