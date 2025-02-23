@@ -45,15 +45,34 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [routeInfo, setRouteInfo] = useState(null);
   const [directions, setDirections] = useState(null);
+  // New state for the user's current location
+  const [userLocation, setUserLocation] = useState(null);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   });
 
-  // GEOJSON and CSV URLs for additional overlays
-  const geoJsonUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.geojson?cachebust=1";
-  const csvUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.csv?cachebust=1";
+  // Get the user's current location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error retrieving user location:", error);
+          setUserLocation({ lat: 40.8117, lng: -81.9308 });
+        }
+      );
+    } else {
+      console.error("Geolocation not supported by this browser.");
+      setUserLocation({ lat: 40.8117, lng: -81.9308 });
+    }
+  }, []);
 
   const onMapLoad = useCallback((mapInstance) => {
     setMap(mapInstance);
@@ -74,17 +93,22 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
     }
   }, [map]);
 
+  // Set map center based on landsatData if available, otherwise use user's location
   const center = useMemo(() => {
-    if (!landsatData || landsatData.length === 0) {
-      return { lat: 37.7749, lng: -122.4194 }; // Default center (San Francisco)
+    if (landsatData && landsatData.length > 0) {
+      let sumLat = 0, sumLng = 0;
+      landsatData.forEach((point) => {
+        sumLat += parseFloat(point.lat);
+        sumLng += parseFloat(point.lng);
+      });
+      return { lat: sumLat / landsatData.length, lng: sumLng / landsatData.length };
+    } else if (userLocation) {
+      return userLocation;
+    } else {
+      // Fallback default if neither landsatData nor geolocation is available
+      return { lat: 40.8117, lng: -81.9308 };
     }
-    let sumLat = 0, sumLng = 0;
-    landsatData.forEach((point) => {
-      sumLat += parseFloat(point.lat);
-      sumLng += parseFloat(point.lng);
-    });
-    return { lat: sumLat / landsatData.length, lng: sumLng / landsatData.length };
-  }, [landsatData]);
+  }, [landsatData, userLocation]);
 
   useEffect(() => {
     if (map && landsatData && landsatData.length > 0 && window.google) {
@@ -211,6 +235,9 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
     return geojson;
   }
 
+  const geoJsonUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.geojson?cachebust=1";
+  const csvUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.csv?cachebust=1";
+
   const toggleGeoJson = async () => {
     if (!map) return;
 
@@ -314,7 +341,7 @@ export default function MapOverlay({ landsatData, recommendations, userLocation 
       <GoogleMap
         onLoad={onMapLoad}
         center={center}
-        zoom={10}
+        zoom={15}
         mapContainerStyle={{ width: "100%", height: "100%" }}
       >
         {landsatData &&
