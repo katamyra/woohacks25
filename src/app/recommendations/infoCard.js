@@ -67,9 +67,10 @@ const InfoCard = ({
         </h3>
         <p style={{ fontSize: "10px", color: "#555" }}>
           {routeInfo.distance
-            ? `${routeInfo.distance} miles away`
-            : "Calculating distance..."}{" "}
-          • {place.vicinity}
+            ? `${(routeInfo.distance / 1609.34).toFixed(1)} miles away`
+            : "Calculating distance..."}
+          {" • "}
+          {place.vicinity}
         </p>
         <p style={{ fontSize: "10px", color: "#555" }}>
           {routeInfo.eta
