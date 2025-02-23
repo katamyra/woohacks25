@@ -71,7 +71,7 @@ export const fetchRecommendations = async (review, { address, lng, lat }) => {
 
         const data = await response.json();
         const flattenedResults = data.results.flatMap(queryResult => queryResult.results || []);
-        const limitedResults = flattenedResults.slice(0, 20);
+        const limitedResults = flattenedResults.slice(0, 14);
         console.log('Received recommendations (flattened):', limitedResults);
         return limitedResults;
     } catch (error) {
