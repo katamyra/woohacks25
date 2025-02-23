@@ -3,6 +3,9 @@ import InfoCard from "./infoCard";
 import SortDropdown from "./sortDropdown";
 import FilterDropdown from "./infoFilterDropdown";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
+import { decodeORSGeometry } from "@/utils/decodeORSGeometry";
+import { calculateWeightedPEIScore } from "@/utils/calculateLinestringPEI";
+import * as turf from "@turf/turf";
 
 async function fetchCsvAndParse(url) {
   const response = await fetch(url);
@@ -43,6 +46,7 @@ function mergePEIScoreIntoGeojson(geojson, scoreMap) {
   });
   return geojson;
 }
+
 /**
  * Maps raw amenity types (from the Google Places API) into filter groups.
  */
@@ -212,12 +216,12 @@ const Gallery = ({
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [filterSearch, setFilterSearch] = useState("");
 
-  // NEW: State to store walkability GeoJSON once fetched and merged with scores.
+  // State to store walkability GeoJSON once fetched and merged with scores.
   const [walkabilityData, setWalkabilityData] = useState(null);
-  // NEW: State for real ETA values fetched via fetchSafeRouteORS, mapping recommendation's place_id to its ETA.
+  // State for real ETA values fetched via fetchSafeRouteORS, mapping recommendation's place_id to its ETA.
   const [etaMap, setEtaMap] = useState({});
 
-  // NEW: Fetch walkability data (CSV and GeoJSON) and merge PEI scores
+  // Fetch walkability data (CSV and GeoJSON) and merge PEI scores
   useEffect(() => {
     const fetchWalkabilityData = async () => {
       try {
@@ -236,7 +240,7 @@ const Gallery = ({
     fetchWalkabilityData();
   }, []);
 
-  // NEW: Fetch real ETA values for each recommendation using fetchSafeRouteORS.
+  // Fetch real ETA values for each recommendation using fetchSafeRouteORS.
   useEffect(() => {
     async function fetchEtas() {
       const newEtaMap = {};
@@ -248,10 +252,21 @@ const Gallery = ({
             null, // pass firePolygonsCollection if available
             userLocation
           );
-          newEtaMap[rec.place_id] = routeData.eta;
+          // Initialize weightedWalkability as zero.
+          let weightedWalkability = 0;
+          // If route geometry is available and walkabilityData is loaded, compute weighted average.
+          if (routeData.geometry && walkabilityData) {
+            const pathCoordinates = decodeORSGeometry(routeData.geometry);
+            if (pathCoordinates.length > 0) {
+              const lineCoords = pathCoordinates.map(coord => [coord.lng, coord.lat]);
+              const routeLine = turf.lineString(lineCoords);
+              weightedWalkability = calculateWeightedPEIScore(routeLine, walkabilityData) || 0;
+            }
+          }
+          newEtaMap[rec.place_id] = { eta: routeData.eta, weightedWalkability };
         } catch (error) {
           console.error(`Error fetching ETA for ${rec.place_id}:`, error);
-          newEtaMap[rec.place_id] = 0;
+          newEtaMap[rec.place_id] = { eta: 0, weightedWalkability: 0 };
         }
       }
       setEtaMap(newEtaMap);
@@ -259,7 +274,7 @@ const Gallery = ({
     if (recommendations.length > 0) {
       fetchEtas();
     }
-  }, [recommendations, userLocation]);
+  }, [recommendations, userLocation, walkabilityData]);
 
   // Enhance recommendations with real ETA and real walkability scores.
   // The real ETA is fetched asynchronously via fetchSafeRouteORS and stored in etaMap.
@@ -267,8 +282,11 @@ const Gallery = ({
     return recommendations.map((rec) => ({
       ...rec,
       dummyETA: etaMap[rec.place_id] !== undefined ? etaMap[rec.place_id] : 0,
-      walkability: walkabilityData
-        ? getWalkabilityScoreForRecommendation(rec, walkabilityData)
+      walkability:
+      etaMap[rec.place_id]?.weightedWalkability !== undefined
+        ? Number(etaMap[rec.place_id].weightedWalkability.toFixed(2))
+        : walkabilityData
+        ? Number(getWalkabilityScoreForRecommendation(rec, walkabilityData).toFixed(2))
         : 0,
     }));
   }, [recommendations, walkabilityData, etaMap]);
@@ -323,13 +341,23 @@ const Gallery = ({
     if (selectedSort === "ETA") {
       recs.sort((a, b) => a.dummyETA - b.dummyETA);
     } else if (selectedSort === "Walkability") {
-      recs.sort((a, b) => a.walkability - b.walkability);
+      recs.sort((a, b) => b.walkability - a.walkability);
     }
     return recs;
   }, [filteredRecommendations, selectedSort]);
 
   // Always display at most 15 amenities.
   const displayedRecommendations = sortedRecommendations.slice(0, 15);
+
+  // Use grid layout when gallery is expanded, otherwise stack cards vertically.
+  const cardsContainerStyle = galleryExpanded
+    ? {
+        display: "grid",
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gridTemplateRows: "repeat(3, auto)",
+        gap: "10px",
+      }
+    : { display: "flex", flexDirection: "column", gap: "10px" };
 
   return (
     <div className="gallery">
@@ -426,21 +454,23 @@ const Gallery = ({
         </div>
       )}
 
-      {/* Render the (up to 15) amenity InfoCards */}
-      {displayedRecommendations.length > 0 ? (
-        displayedRecommendations.map((place, index) => (
-          <InfoCard
-            key={index}
-            place={place}
-            userLocation={userLocation}
-            geminiExplanation={geminiExplanations[place.place_id]}
-            user={user}
-            onSetDestination={onSetDestination}
-          />
-        ))
-      ) : (
-        <p>Loading...</p>
-      )}
+      {/* Render the (up to 15) amenity InfoCards in either grid or list layout */}
+      <div style={cardsContainerStyle}>
+        {displayedRecommendations.length > 0 ? (
+          displayedRecommendations.map((place, index) => (
+            <InfoCard
+              key={index}
+              place={place}
+              userLocation={userLocation}
+              geminiExplanation={geminiExplanations[place.place_id]}
+              user={user}
+              onSetDestination={onSetDestination}
+            />
+          ))
+        ) : (
+          <p>Loading...</p>
+        )}
+      </div>
     </div>
   );
 };

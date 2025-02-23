@@ -23,7 +23,7 @@ const SortDropdown = ({ selectedSort, setSelectedSort }) => {
             padding: "5px",
             cursor: "pointer",
             backgroundColor: selectedSort === option ? "#eee" : "#fff",
-            color: "black", // ensure text is visible
+            color: "black",
           }}
           onClick={() => setSelectedSort(option)}
         >

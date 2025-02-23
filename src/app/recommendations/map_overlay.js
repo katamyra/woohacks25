@@ -3,10 +3,11 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { GoogleMap, useJsApiLoader, Polygon, Marker } from "@react-google-maps/api";
 import * as turf from "@turf/turf";
 import CustomMarker from "./CustomMarker";
-import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
+import { calculateWeightedPEIScore } from "@/utils/calculateLinestringPEI";
 import { useAuth } from "@/context/AuthContext";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { decodeORSGeometry } from "@/utils/decodeORSGeometry";
+
 
 // Helper to get a color based on a numeric score.
 function getColor(value) {
@@ -45,6 +46,7 @@ export default function MapOverlay({ landsatData, recommendations, destination }
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [hoverScore, setHoverScore] = useState(null);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [mergedGeojson, setMergedGeojson] = useState(null);
   const [routeInfo, setRouteInfo] = useState(null);
   const [currentUserLocation, setCurrentUserLocation] = useState();
 
@@ -118,7 +120,7 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     }
   }, [map, landsatData]);
 
-  // Create avoid polygons from landsatData (fire polygons)
+  // Avoid polygons from landsatData (fire polygons)
   const firePolygons = landsatData.map((dataPoint) => {
     const point = turf.point([dataPoint.lng, dataPoint.lat]);
     const polygon = turf.buffer(point, 1, { units: "kilometers" });
@@ -131,18 +133,44 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     coordinates: firePolygons.map(coords => coords) 
   };
 
-  localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
+  // Automatically fetch and render the safe route when a destination is set.
+  useEffect(() => {
+    if (destination && map && window.google) {
+      const getSafeRoute = async () => {
+        try {
+          const routeData = await fetchSafeRouteORS(
+            currentUserLocation,
+            destination,
+            avoidPolygons,
+            currentUserLocation
+          );
+          setRouteInfo(routeData);
+          if (routeData.geometry) {
+            const pathCoordinates = decodeORSGeometry(routeData.geometry);
+            new window.google.maps.Polyline({
+              map: map,
+              path: pathCoordinates,
+              strokeColor: "#4285F4",
+              strokeWeight: 4,
+            });
+            console.log(`ETA (seconds): ${routeData.eta}`);
+            console.log(`Distance (meters): ${routeData.distance}`);
 
-  const requestBody = {
-    coordinates: [
-      [8.681495, 49.41461],
-      [8.686507, 49.41943],
-      [8.687872, 49.420318]
-    ],
-    options: {
-      avoid_polygons: avoidPolygons // Use the MultiPolygon
-    }
-  };
+            if (mergedGeojson && pathCoordinates.length > 0) {
+              const weightedPEIScore = calculateWeightedPEIScore(routeData.geometry, mergedGeojson);
+              if (weightedPEIScore !== null) {
+                console.log("Weighted PEI Score along route (meters):", weightedPEIScore.toFixed(2));
+              } else {
+                console.log("Route does not intersect any PEI polygons.");
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching safe route via ORS:", error);
+        }
+      };
+      getSafeRoute()
+  localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
 
   // --- Get Route Info using fetchRouteInfo ---
   const handleSafeRoute = async () => {
