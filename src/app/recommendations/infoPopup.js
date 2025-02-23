@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { useAuth } from '@/context/AuthContext';
+import { useSelector, useDispatch } from 'react-redux';
+import { addCoordinate, resetCoordinates } from '../features/coordinates/coordinatesSlice';
 
 const InfoPopup = ({ place, geminiExplanation, onClose }) => {
   const { user, loading } = useAuth();
@@ -10,6 +12,8 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
   const lat = place.geometry.location.lat;
   const lng = place.geometry.location.lng;
   const destinationCoord = {lat, lng};
+  const coordinates = useSelector((state) => state.coordinates.coordinates);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -28,25 +32,27 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
 
   useEffect(() => {
     console.log("Route Info", routeInfo);
+    dispatch(resetCoordinates());
+    dispatch(addCoordinate(routeInfo?.geometry?.coordinates));
   }, [routeInfo]);
 
   // Function to handle setting the safe route
   const handleSetSafeRoute = () => {
     const firePolygonsCollection = localStorage.getItem("avoidPolygons");
-    setRouteInfo(fetchSafeRouteORS(userLocation, destinationCoord, firePolygonsCollection, userLocation));
+    fetchSafeRouteORS(userLocation, destinationCoord, firePolygonsCollection, userLocation)
+      .then(result => {
+        setRouteInfo(result);
+      })
+      .catch(error => {
+        console.error('Error fetching safe route:', error);
+      });
   };
+  
 
   useEffect(() => {
-    console.log("routeInfo", routeInfo);
+    console.log("routeInfo", routeInfo?.geometry?.coordinates);
   }, [routeInfo]);
 
-  const handleSetDestination = () => {
-    if (onSetDestination && place.geometry && place.geometry.location) {
-      // Set the destination to the amenity's coordinates.
-      onSetDestination(place.geometry.location);
-      onClose(); // Optionally close the popup after setting the destination.
-    }
-  };
 
   return (
     <div

@@ -1,12 +1,15 @@
 "use client";
 import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { GoogleMap, useJsApiLoader, Polygon, Marker } from "@react-google-maps/api";
+import { GoogleMap, useJsApiLoader, Polygon, Marker, Polyline } from "@react-google-maps/api";
 import * as turf from "@turf/turf";
 import CustomMarker from "./CustomMarker";
 import { calculateWeightedPEIScore } from "@/utils/calculateLinestringPEI";
 import { useAuth } from "@/context/AuthContext";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { decodeORSGeometry } from "@/utils/decodeORSGeometry";
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { resetCoordinates, addCoordinate } from "../features/coordinates/coordinatesSlice";
 
 
 // Helper to get a color based on a numeric score.
@@ -39,6 +42,17 @@ const getOpacity = (confidence) => {
   }
 };
 
+function convertCoords(coordsArray) {
+  if (!Array.isArray(coordsArray)) {
+    console.warn("Invalid coordinates array:", coordsArray);
+    return [];
+  }
+  // Filter out any element that isn't a valid array with at least two numbers
+  return coordsArray
+    .filter(coord => Array.isArray(coord) && coord.length >= 2)
+    .map(([lng, lat]) => ({ lat, lng }));
+}
+
 export default function MapOverlay({ landsatData, recommendations, destination }) {
   console.log("Recommendations:", recommendations)
   const { user } = useAuth();
@@ -49,6 +63,12 @@ export default function MapOverlay({ landsatData, recommendations, destination }
   const [mergedGeojson, setMergedGeojson] = useState(null);
   const [routeInfo, setRouteInfo] = useState(null);
   const [currentUserLocation, setCurrentUserLocation] = useState();
+  const coordinates = useSelector((state) => state.coordinates.coordinates);
+  console.log("Coordinates from Redux:", coordinates); // Check the value
+
+  useEffect(() => {
+    console.log("REDUX Coordinates:", coordinates);
+  }, [coordinates]);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -298,6 +318,12 @@ export default function MapOverlay({ landsatData, recommendations, destination }
     }
   };
 
+  // Convert the coordinate array from Redux to Google Maps-friendly format
+  const routePath = useMemo(() => {
+    if (!coordinates || coordinates.length === 0) return [];
+    return convertCoords(coordinates);
+  }, [coordinates]);
+
   if (!isLoaded) return <p>Loading Map...</p>;
 
   const commonStyle = {
@@ -409,6 +435,22 @@ export default function MapOverlay({ landsatData, recommendations, destination }
               />
             );
           })}
+
+        {/* Render your route from the Redux coordinates */}
+        {routePath.length > 0 && (
+          <Polyline
+            path={routePath}
+            options={{
+              strokeColor: "#4285F4",
+              strokeWeight: 4,
+            }}
+          />
+        )}
+
+        {/* Optional: If you also want Markers for each point */}
+        {routePath.map((coord, idx) => (
+          <Marker key={idx} position={coord} />
+        ))}
       </GoogleMap>
     </div>
   );
