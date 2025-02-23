@@ -242,12 +242,18 @@ const Gallery = ({
       const newEtaMap = {};
       for (const rec of recommendations) {
         try {
+          const lat = rec.geometry.location.lat;
+          const lng = rec.geometry  .location.lng;
+          const destination = { lat: lat, lng: lng };
+
           const routeData = await fetchSafeRouteORS(
             userLocation,
-            { lat: rec.geometry.location.lat, lng: rec.geometry.location.lng },
-            null, // pass firePolygonsCollection if available
+            destination,
+            localStorage.getItem("firePolygonsCollection"),
             userLocation
           );
+          console.log("routeData", routeData);
+          console.log("routeData ETA",routeData.eta);
           newEtaMap[rec.place_id] = routeData.eta;
         } catch (error) {
           console.error(`Error fetching ETA for ${rec.place_id}:`, error);
@@ -266,12 +272,14 @@ const Gallery = ({
   const enhancedRecommendations = useMemo(() => {
     return recommendations.map((rec) => ({
       ...rec,
-      dummyETA: etaMap[rec.place_id] !== undefined ? etaMap[rec.place_id] : 0,
+      dummyETA: etaMap[rec.place_id] ?? 0,
       walkability: walkabilityData
         ? getWalkabilityScoreForRecommendation(rec, walkabilityData)
         : 0,
     }));
   }, [recommendations, walkabilityData, etaMap]);
+  console.log("enhancedRecommendations", enhancedRecommendations);
+  console.log("etaMap", etaMap);
 
   // Fixed filter groups (in desired order)
   const fixedFilters = [
@@ -318,6 +326,7 @@ const Gallery = ({
   }, [enhancedRecommendations, selectedFilters]);
 
   // Apply the selected sort order on the filtered recommendations.
+  console.log("filteredRecommendations", filteredRecommendations);
   const sortedRecommendations = useMemo(() => {
     let recs = [...filteredRecommendations];
     if (selectedSort === "ETA") {
