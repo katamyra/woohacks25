@@ -1,5 +1,5 @@
 import { db } from '../config';
-import { collection, addDoc, getDocs, query, where, DocumentData, doc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, DocumentData, doc, setDoc, updateDoc } from 'firebase/firestore';
 
 class FirestoreService {
   // Collection references
@@ -62,6 +62,16 @@ class FirestoreService {
       return userData;
     } catch (error) {
       throw error;
+    }
+  }
+
+  async updateUser(uid, data) {
+    try {
+      await updateDoc(doc(db, 'users', uid), data);
+      return true;
+    } catch (error) {
+      console.error('Firestore update error:', error);
+      throw new Error('Failed to update user document');
     }
   }
 }
