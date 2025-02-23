@@ -1,4 +1,3 @@
-// Gallery.js
 import React, { useState, useMemo } from "react";
 import InfoCard from "./infoCard";
 import SortDropdown from "./sortDropdown";
@@ -14,7 +13,15 @@ const getFilterCategories = (types) => {
     const lower = type.toLowerCase();
     // HEALTH
     if (
-      ["doctor", "health", "hospital", "pharmacy", "drugstore", "physiotherapist", "veterinary_care"].includes(lower)
+      [
+        "doctor",
+        "health",
+        "hospital",
+        "pharmacy",
+        "drugstore",
+        "physiotherapist",
+        "veterinary_care",
+      ].includes(lower)
     ) {
       categories.add("Health");
     }
@@ -103,7 +110,14 @@ const getFilterCategories = (types) => {
   return Array.from(categories);
 };
 
-const Gallery = ({ recommendations, userLocation, geminiExplanations, user, galleryExpanded }) => {
+const Gallery = ({
+  recommendations,
+  userLocation,
+  geminiExplanations,
+  user,
+  galleryExpanded,
+  onSetDestination,
+}) => {
   // Dropdown states
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
@@ -288,6 +302,7 @@ const Gallery = ({ recommendations, userLocation, geminiExplanations, user, gall
             userLocation={userLocation}
             geminiExplanation={geminiExplanations[place.place_id]}
             user={user}
+            onSetDestination={onSetDestination}
           />
         ))
       ) : (

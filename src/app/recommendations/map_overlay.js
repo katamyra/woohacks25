@@ -1,13 +1,14 @@
 "use client";
 import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { GoogleMap, useJsApiLoader, Polygon, DirectionsRenderer } from "@react-google-maps/api";
+import { GoogleMap, useJsApiLoader, Polygon } from "@react-google-maps/api";
 import * as turf from "@turf/turf";
 import CustomMarker from "./CustomMarker";
 import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
 import { useAuth } from "@/context/AuthContext";
-import { fetchSafeRouteORS } from '@/utils/fetchSafeRouteORS';
-import { decodeORSGeometry } from '@/utils/decodeORSGeometry';
+import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
+import { decodeORSGeometry } from "@/utils/decodeORSGeometry";
 
+// Color helper based on walkability score.
 function getColor(value) {
   const score = Math.max(0, Math.min(1, value));
   return score > 0.95 ? "#006400"
@@ -37,14 +38,13 @@ const getOpacity = (confidence) => {
   }
 };
 
-export default function MapOverlay({ landsatData, userLocation }) {
+export default function MapOverlay({ landsatData, userLocation, destination }) {
   const { user } = useAuth();
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [hoverScore, setHoverScore] = useState(null);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [routeInfo, setRouteInfo] = useState(null);
-  const [directions, setDirections] = useState(null);
   const [currentUserLocation, setCurrentUserLocation] = useState(userLocation);
 
   const { isLoaded } = useJsApiLoader({
@@ -102,7 +102,6 @@ export default function MapOverlay({ landsatData, userLocation }) {
     } else if (currentUserLocation) {
       return currentUserLocation;
     } else {
-      // Fallback default if neither landsatData nor geolocation is available
       return { lat: 40.8117, lng: -81.9308 };
     }
   }, [landsatData, currentUserLocation]);
@@ -117,77 +116,50 @@ export default function MapOverlay({ landsatData, userLocation }) {
     }
   }, [map, landsatData]);
 
+  // Create avoid polygons from the landsatData (fire polygons)
   const firePolygons = landsatData.map(dataPoint => {
     const point = turf.point([dataPoint.lng, dataPoint.lat]);
-    const polygon = turf.buffer(point, 1, { units: 'kilometers' });
-
-    return polygon.geometry.coordinates; // Return the coordinates of the polygon
+    const polygon = turf.buffer(point, 1, { units: "kilometers" });
+    return polygon.geometry.coordinates;
   });
 
-  // wrapping MultiPolygon
+  // Wrap polygons as a MultiPolygon for the ORS API
   const avoidPolygons = {
     type: "MultiPolygon",
-    coordinates: firePolygons.map(coords => coords) 
+    coordinates: firePolygons.map((coords) => coords),
   };
 
-  const requestBody = {
-    coordinates: [
-      [8.681495, 49.41461],
-      [8.686507, 49.41943],
-      [8.687872, 49.420318]
-    ],
-    options: {
-      avoid_polygons: avoidPolygons // Use the MultiPolygon
+  // Automatically fetch and render the safe route when a destination is set.
+  useEffect(() => {
+    if (destination && map && window.google) {
+      const getSafeRoute = async () => {
+        try {
+          const routeData = await fetchSafeRouteORS(
+            currentUserLocation,
+            destination,
+            avoidPolygons,
+            currentUserLocation
+          );
+          setRouteInfo(routeData);
+          if (routeData.geometry) {
+            const pathCoordinates = decodeORSGeometry(routeData.geometry);
+            // Render the safe route polyline on the map.
+            new window.google.maps.Polyline({
+              map: map,
+              path: pathCoordinates,
+              strokeColor: "#4285F4",
+              strokeWeight: 4,
+            });
+            console.log(`ETA (seconds): ${routeData.eta}`);
+            console.log(`Distance (meters): ${routeData.distance}`);
+          }
+        } catch (error) {
+          console.error("Error fetching safe route via ORS:", error);
+        }
+      };
+      getSafeRoute();
     }
-  };
-
-  // --- Get Route Info using fetchRouteInfo ---
-  const handleSafeRoute = async () => {
-    if (!map || !user) return;
-
-    const originCoords = { lat: 33.6522, lng: -84.3394 }; // 출발지
-    const destinationCoords = { lat: 33.775, lng: -84.396 }; // 목적지
-
-    // Pass an empty array or no waypoints at all:
-    const routeData = await fetchRouteInfo(originCoords, destinationCoords, [], currentUserLocation);
-    console.log("Route Data:", routeData);
-    
-    // Render the route, etc.
-    if (routeData.encodedPolyline && window.google && map) {
-      const path = window.google.maps.geometry.encoding.decodePath(routeData.encodedPolyline);
-      new window.google.maps.Polyline({
-        map: map,
-        path: path,
-        strokeColor: "#4285F4",
-        strokeWeight: 4,
-      });
-    }
-  };
-
-  const handleSafeRouteORS = async () => {
-    if (!map || !user) return;
-
-    const originCoords = { lat: 33.6522, lng: -84.3394 };
-    const destinationCoords = { lat: 33.775, lng: -84.396 };
-
-    // ORS function call
-    const routeData = await fetchSafeRouteORS(originCoords, destinationCoords, avoidPolygons, currentUserLocation);
-    console.log("ORS Route Data:", routeData);
-    
-    if (routeData.geometry && window.google && map) {
-      const pathCoordinates = decodeORSGeometry(routeData.geometry);
-      
-      new window.google.maps.Polyline({
-        map: map,
-        path: pathCoordinates,
-        strokeColor: "#4285F4",
-        strokeWeight: 4,
-      });
-      
-      console.log(`ETA (seconds): ${routeData.eta}`);
-      console.log(`distance (meters): ${routeData.distance}`);
-    }
-  };
+  }, [destination, map, currentUserLocation, avoidPolygons]);
 
   async function fetchCsvAndParse(url) {
     const response = await fetch(url);
@@ -197,15 +169,12 @@ export default function MapOverlay({ landsatData, userLocation }) {
     const text = await response.text();
     const lines = text.split(/\r?\n/);
     if (lines.length === 0) return {};
-
     const header = lines[0].split(",");
     const geoidIndex = header.indexOf("GEOID");
     const peiIndex = header.indexOf("PEI");
-
     if (geoidIndex === -1 || peiIndex === -1) {
       throw new Error("CSV missing GEOID or PEI_score columns");
     }
-
     const scoreMap = {};
     for (let i = 1; i < lines.length; i++) {
       const row = lines[i].trim();
@@ -220,7 +189,7 @@ export default function MapOverlay({ landsatData, userLocation }) {
     return scoreMap;
   }
 
-  // Helper function to merge PEI score into GeoJSON
+  // Merge PEI scores into GeoJSON features.
   function mergePEIScoreIntoGeojson(geojson, scoreMap) {
     if (!geojson.features) return geojson;
     geojson.features.forEach((feature) => {
@@ -237,13 +206,11 @@ export default function MapOverlay({ landsatData, userLocation }) {
 
   const toggleGeoJson = async () => {
     if (!map) return;
-
     if (overlayVisible) {
       map.data.setMap(null);
       setOverlayVisible(false);
       return;
     }
-
     try {
       const scoreMap = await fetchCsvAndParse(csvUrl);
       const geoRes = await fetch(geoJsonUrl);
@@ -252,10 +219,8 @@ export default function MapOverlay({ landsatData, userLocation }) {
       }
       const geojson = await geoRes.json();
       mergePEIScoreIntoGeojson(geojson, scoreMap);
-
       map.data.forEach((f) => map.data.remove(f));
       map.data.addGeoJson(geojson);
-
       map.data.setStyle((feature) => {
         const score = feature.getProperty("PEI_score") || 0.0;
         const color = getColor(score);
@@ -265,7 +230,6 @@ export default function MapOverlay({ landsatData, userLocation }) {
           strokeWeight: 1,
         };
       });
-
       map.data.setMap(map);
       setOverlayVisible(true);
     } catch (error) {
@@ -329,10 +293,6 @@ export default function MapOverlay({ landsatData, userLocation }) {
               : "Walkability: ____"}
           </div>
         )}
-
-        <button onClick={handleSafeRouteORS} style={commonStyle}>
-          Get Safe Route (ORS)
-        </button>
       </div>
 
       <GoogleMap

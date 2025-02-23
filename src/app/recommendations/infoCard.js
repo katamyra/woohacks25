@@ -1,13 +1,11 @@
-// InfoCard.js
 import React, { useState, useEffect } from "react";
 import InfoPopup from "./infoPopup";
 import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
 
-const InfoCard = ({ place, userLocation, geminiExplanation, user }) => {
+const InfoCard = ({ place, userLocation, geminiExplanation, user, onSetDestination }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [routeInfo, setRouteInfo] = useState({ eta: null, distance: null });
 
-  // Fetch route information (ETA and distance) when the component mounts.
   useEffect(() => {
     const getRouteDetails = async () => {
       try {
@@ -40,7 +38,6 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user }) => {
           position: "relative",
         }}
       >
-        {/* Category badge */}
         <div
           style={{
             position: "absolute",
@@ -78,6 +75,7 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user }) => {
           place={place}
           geminiExplanation={geminiExplanation}
           onClose={() => setShowPopup(false)}
+          onSetDestination={onSetDestination}
         />
       )}
     </>
