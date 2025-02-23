@@ -1,10 +1,10 @@
 // src/app/store.js
 import { configureStore } from '@reduxjs/toolkit';
-import coordinatesReducer from './features/coordinates/coordinatesSlice';
+import destinationReducer from './features/destination/destinationSlice';
 
 const store = configureStore({
   reducer: {
-    coordinates: coordinatesReducer,
+    destination: destinationReducer, 
   },
 });
 
