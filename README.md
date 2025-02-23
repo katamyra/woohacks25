@@ -1,6 +1,7 @@
 # BuzzLine
 
 A Next.js-based platform designed to support users during emergencies (e.g., fire hazards) by providing targeted recommendations, safe travel routes, and real-time mapping overlays for walakabilities.
+![Sample Image](https://ibb.co/sd1nPwHx)
 
 ---
 ## Table of Contents
