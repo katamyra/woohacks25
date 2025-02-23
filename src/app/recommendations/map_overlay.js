@@ -3,10 +3,11 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { GoogleMap, useJsApiLoader, Polygon, Marker } from "@react-google-maps/api";
 import * as turf from "@turf/turf";
 import CustomMarker from "./CustomMarker";
-import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
+import { calculateWeightedPEIScore } from "@/utils/calculateLinestringPEI";
 import { useAuth } from "@/context/AuthContext";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { decodeORSGeometry } from "@/utils/decodeORSGeometry";
+
 
 // Helper to get a color based on a numeric score.
 function getColor(value) {
@@ -45,8 +46,8 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [hoverScore, setHoverScore] = useState(null);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
-  const [routeInfo, setRouteInfo] = useState(null);
   const [currentUserLocation, setCurrentUserLocation] = useState(userLocation);
+  const [mergedGeojson, setMergedGeojson] = useState(null);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -118,7 +119,7 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
     }
   }, [map, landsatData]);
 
-  // Create avoid polygons from landsatData (fire polygons)
+  // Avoid polygons from landsatData (fire polygons)
   const firePolygons = landsatData.map((dataPoint) => {
     const point = turf.point([dataPoint.lng, dataPoint.lat]);
     const polygon = turf.buffer(point, 1, { units: "kilometers" });
@@ -153,6 +154,15 @@ export default function MapOverlay({ landsatData, recommendations, userLocation,
             });
             console.log(`ETA (seconds): ${routeData.eta}`);
             console.log(`Distance (meters): ${routeData.distance}`);
+
+            if (mergedGeojson && pathCoordinates.length > 0) {
+              const weightedPEIScore = calculateWeightedPEIScore(routeData.geometry, mergedGeojson);
+              if (weightedPEIScore !== null) {
+                console.log("Weighted PEI Score along route (meters):", weightedPEIScore.toFixed(2));
+              } else {
+                console.log("Route does not intersect any PEI polygons.");
+              }
+            }
           }
         } catch (error) {
           console.error("Error fetching safe route via ORS:", error);
