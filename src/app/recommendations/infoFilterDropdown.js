@@ -1,33 +1,84 @@
 // FilterDropdown.js
 import React from "react";
 
-const infoFilterDropdown = () => {
-  const handleSort = (criteria) => {
-    // Implement your sorting logic based on criteria (distance, category, etc.)
-    console.log("Sorting by:", criteria);
+const FilterDropdown = ({
+  filterSearch,
+  setFilterSearch,
+  filteredFilterOptions,
+  selectedFilters,
+  setSelectedFilters,
+}) => {
+  const toggleFilter = (option) => {
+    // If already selected, remove it.
+    if (selectedFilters.includes(option)) {
+      setSelectedFilters(selectedFilters.filter((f) => f !== option));
+    } else {
+      // Only add if less than 15 filters are currently selected.
+      if (selectedFilters.length < 15) {
+        setSelectedFilters([...selectedFilters, option]);
+      }
+    }
   };
 
   return (
     <div
       style={{
         position: "absolute",
-        top: "25px",
-        right: "0",
-        backgroundColor: "black",
+        top: "100%",
+        right: 0,
+        backgroundColor: "#fff",
         border: "1px solid #ccc",
         borderRadius: "4px",
         padding: "10px",
         zIndex: 100,
+        width: "200px",
       }}
     >
-      <p style={{ margin: "5px 0", cursor: "pointer" }} onClick={() => handleSort("distance")}>
-        Sort by Distance
-      </p>
-      <p style={{ margin: "5px 0", cursor: "pointer" }} onClick={() => handleSort("category")}>
-        Sort by Amenity Category
-      </p>
+      <input
+        type="text"
+        value={filterSearch}
+        onChange={(e) => setFilterSearch(e.target.value)}
+        placeholder="Search filters..."
+        style={{
+          width: "100%",
+          padding: "5px",
+          marginBottom: "10px",
+          boxSizing: "border-box",
+        }}
+      />
+      <div style={{ maxHeight: "150px", overflowY: "auto" }}>
+        {filteredFilterOptions.map((option) => {
+          // Disable option if 15 filters are already selected and this option is not already selected.
+          const disabled =
+            selectedFilters.length >= 15 && !selectedFilters.includes(option);
+          return (
+            <div
+              key={option}
+              style={{
+                padding: "5px",
+                cursor: disabled ? "not-allowed" : "pointer",
+                display: "flex",
+                justifyContent: "space-between",
+                backgroundColor: selectedFilters.includes(option)
+                  ? "#eee"
+                  : "#fff",
+                color: disabled ? "gray" : "black",
+              }}
+              onClick={() => {
+                if (!disabled) toggleFilter(option);
+              }}
+            >
+              <span>{option}</span>
+              {selectedFilters.includes(option) && <span>&#x2713;</span>}
+            </div>
+          );
+        })}
+        {filteredFilterOptions.length === 0 && (
+          <div style={{ padding: "5px" }}>No matches</div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default infoFilterDropdown;
+export default FilterDropdown;
