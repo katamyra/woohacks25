@@ -43,6 +43,7 @@ function mergePEIScoreIntoGeojson(geojson, scoreMap) {
   });
   return geojson;
 }
+
 /**
  * Maps raw amenity types (from the Google Places API) into filter groups.
  */
@@ -212,12 +213,12 @@ const Gallery = ({
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [filterSearch, setFilterSearch] = useState("");
 
-  // NEW: State to store walkability GeoJSON once fetched and merged with scores.
+  // State to store walkability GeoJSON once fetched and merged with scores.
   const [walkabilityData, setWalkabilityData] = useState(null);
-  // NEW: State for real ETA values fetched via fetchSafeRouteORS, mapping recommendation's place_id to its ETA.
+  // State for real ETA values fetched via fetchSafeRouteORS, mapping recommendation's place_id to its ETA.
   const [etaMap, setEtaMap] = useState({});
 
-  // NEW: Fetch walkability data (CSV and GeoJSON) and merge PEI scores
+  // Fetch walkability data (CSV and GeoJSON) and merge PEI scores
   useEffect(() => {
     const fetchWalkabilityData = async () => {
       try {
@@ -236,7 +237,7 @@ const Gallery = ({
     fetchWalkabilityData();
   }, []);
 
-  // NEW: Fetch real ETA values for each recommendation using fetchSafeRouteORS.
+  // Fetch real ETA values for each recommendation using fetchSafeRouteORS.
   useEffect(() => {
     async function fetchEtas() {
       const newEtaMap = {};
@@ -330,6 +331,16 @@ const Gallery = ({
 
   // Always display at most 15 amenities.
   const displayedRecommendations = sortedRecommendations.slice(0, 15);
+
+  // Use grid layout when gallery is expanded, otherwise stack cards vertically.
+  const cardsContainerStyle = galleryExpanded
+    ? {
+        display: "grid",
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gridTemplateRows: "repeat(3, auto)",
+        gap: "10px",
+      }
+    : { display: "flex", flexDirection: "column", gap: "10px" };
 
   return (
     <div className="gallery">
@@ -426,21 +437,23 @@ const Gallery = ({
         </div>
       )}
 
-      {/* Render the (up to 15) amenity InfoCards */}
-      {displayedRecommendations.length > 0 ? (
-        displayedRecommendations.map((place, index) => (
-          <InfoCard
-            key={index}
-            place={place}
-            userLocation={userLocation}
-            geminiExplanation={geminiExplanations[place.place_id]}
-            user={user}
-            onSetDestination={onSetDestination}
-          />
-        ))
-      ) : (
-        <p>Loading...</p>
-      )}
+      {/* Render the (up to 15) amenity InfoCards in either grid or list layout */}
+      <div style={cardsContainerStyle}>
+        {displayedRecommendations.length > 0 ? (
+          displayedRecommendations.map((place, index) => (
+            <InfoCard
+              key={index}
+              place={place}
+              userLocation={userLocation}
+              geminiExplanation={geminiExplanations[place.place_id]}
+              user={user}
+              onSetDestination={onSetDestination}
+            />
+          ))
+        ) : (
+          <p>Loading...</p>
+        )}
+      </div>
     </div>
   );
 };

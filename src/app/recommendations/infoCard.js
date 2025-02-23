@@ -2,7 +2,13 @@ import React, { useState, useEffect } from "react";
 import InfoPopup from "./infoPopup";
 import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
 
-const InfoCard = ({ place, userLocation, geminiExplanation, user, onSetDestination }) => {
+const InfoCard = ({
+  place,
+  userLocation,
+  geminiExplanation,
+  user,
+  onSetDestination,
+}) => {
   const [showPopup, setShowPopup] = useState(false);
   const [routeInfo, setRouteInfo] = useState({ eta: null, distance: null });
 
@@ -11,7 +17,10 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user, onSetDestinati
       try {
         const data = await fetchRouteInfo(
           { lat: userLocation.lat, lng: userLocation.lng },
-          { lat: place.geometry.location.lat, lng: place.geometry.location.lng },
+          {
+            lat: place.geometry.location.lat,
+            lng: place.geometry.location.lng,
+          },
           null,
           user
         );
@@ -32,10 +41,10 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user, onSetDestinati
         style={{
           border: "1px solid #ccc",
           borderRadius: "4px",
-          padding: "10px",
-          marginBottom: "10px",
+          padding: "8px",
           cursor: "pointer",
           position: "relative",
+          height: "150px", // Fixed height for grid layout consistency
         }}
       >
         <div
@@ -53,20 +62,20 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user, onSetDestinati
           {place.types && place.types[0]}
         </div>
 
-        <h3 style={{ marginTop: "0.5rem" }}>{place.name}</h3>
-        <p style={{ fontSize: "12px", color: "#555" }}>
+        <h3 style={{ margin: "0.3rem 0", fontSize: "1rem" }}>
+          {place.name}
+        </h3>
+        <p style={{ fontSize: "10px", color: "#555" }}>
           {routeInfo.distance
             ? `${routeInfo.distance} miles away`
-            : "Calculating distance..."}
-          {" • "}
-          {place.vicinity}
+            : "Calculating distance..."}{" "}
+          • {place.vicinity}
         </p>
-        <p style={{ fontSize: "12px", color: "#555" }}>
+        <p style={{ fontSize: "10px", color: "#555" }}>
           {routeInfo.eta
             ? `ETA: ${routeInfo.eta} minutes`
-            : `ETA: ${place.dummyETA} minutes`}
-          {" • "}
-          Walkability: {place.walkability}
+            : `ETA: ${place.dummyETA} minutes`}{" "}
+          • Walkability: {place.walkability}
         </p>
       </div>
 

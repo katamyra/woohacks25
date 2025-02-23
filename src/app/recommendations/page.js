@@ -184,6 +184,7 @@ const RecommendationsPage = () => {
           userLocation={{ lat, lng }}
           geminiExplanations={geminiExplanations}
           user={user}
+          galleryExpanded={galleryExpanded}
           onSetDestination={setDestination}
         />
       </div>
