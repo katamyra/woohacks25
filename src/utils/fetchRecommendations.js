@@ -10,12 +10,10 @@ export const fetchRecommendations = async (review, { address, lng, lat }) => {
             Tailor the queries to the user’s specific needs, taking into account factors such as mode of transportation, travel distance, fitness level, age, injury status, medication needs, and any special considerations.
 
         Mandatory Categories:
-            Include at least 4 amenities for each of these categories:
+            Include at least 3 amenities for each of these categories:
                 Healthcare: (e.g., urgent care, hospitals, doctors)
                 Shelter
                 Food/Water
-                Additional Categories:
-                    You may include other relevant amenity categories based on the user's background and situation.
 
         Total Limit:
         The combined queries should yield no more than 24 total amenities.
@@ -73,7 +71,7 @@ export const fetchRecommendations = async (review, { address, lng, lat }) => {
 
         const data = await response.json();
         const flattenedResults = data.results.flatMap(queryResult => queryResult.results || []);
-        const limitedResults = flattenedResults.slice(0, 14);
+        const limitedResults = flattenedResults.slice(0, 20);
         console.log('Received recommendations (flattened):', limitedResults);
         return limitedResults;
     } catch (error) {
