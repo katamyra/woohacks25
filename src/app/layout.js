@@ -40,7 +40,7 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en" className={roboto.className}>
-      <body className="flex flex-col min-h-screen">
+      <body className="flex flex-col h-screen overflow-hidden">
         <Provider store={store}>
           <AuthProvider>
             <NotificationProvider>
