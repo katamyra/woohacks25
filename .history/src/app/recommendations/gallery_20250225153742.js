@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useMemo, useEffect } from "react";
 import InfoCard from "./infoCard";
 import SortDropdown from "./sortDropdown";
@@ -163,7 +162,8 @@ const pointInPolygon = (point, vs) => {
     let xj = vs[j][0],
       yj = vs[j][1];
     let intersect =
-      yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+      (yi > y) !== (yj > y) &&
+      x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
     if (intersect) inside = !inside;
   }
   return inside;
@@ -195,10 +195,8 @@ const getWalkabilityScoreForRecommendation = (rec, geojson) => {
   return 0;
 };
 
-const geoJsonUrl =
-  "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.geojson?cachebust=1";
-const csvUrl =
-  "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.csv?cachebust=1";
+const geoJsonUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.geojson?cachebust=1";
+const csvUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.csv?cachebust=1";
 
 const Gallery = ({
   recommendations,
@@ -267,13 +265,9 @@ const Gallery = ({
     return recommendations.map((rec) => ({
       ...rec,
       dummyETA: etaMap[rec.place_id] || 0,
-      walkability: walkabilityData
-        ? Number(
-            getWalkabilityScoreForRecommendation(rec, walkabilityData).toFixed(
-              2
-            )
-          )
-        : null,
+      walkability: walkabilityData 
+        ? Number(getWalkabilityScoreForRecommendation(rec, walkabilityData).toFixed(2))
+        : null
     }));
   }, [recommendations, walkabilityData, etaMap]);
 
@@ -315,9 +309,7 @@ const Gallery = ({
       return enhancedRecommendations.filter(
         (rec) =>
           rec.types &&
-          getFilterCategories(rec.types).some((t) =>
-            selectedFilters.includes(t)
-          )
+          getFilterCategories(rec.types).some((t) => selectedFilters.includes(t))
       );
     }
     return enhancedRecommendations;
