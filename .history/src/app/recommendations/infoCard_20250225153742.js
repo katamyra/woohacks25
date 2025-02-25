@@ -1,5 +1,4 @@
-"use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import InfoPopup from "./infoPopup";
 import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
 
@@ -63,7 +62,9 @@ const InfoCard = ({
           {place.types && place.types[0]}
         </div>
 
-        <h3 style={{ margin: "0.3rem 0", fontSize: "1rem" }}>{place.name}</h3>
+        <h3 style={{ margin: "0.3rem 0", fontSize: "1rem" }}>
+          {place.name}
+        </h3>
         <p style={{ fontSize: "10px", color: "#555" }}>
           {routeInfo.distance
             ? `${(routeInfo.distance / 1609.34).toFixed(1)} miles away`
@@ -80,11 +81,13 @@ const InfoCard = ({
             : `ETA: ${Math.round(place.dummyETA)} minutes`}
           {" • "}
           Walkability:{" "}
-          {place.walkability === null
-            ? "Loading..."
-            : place.walkability === 0
-            ? "N/A"
-            : place.walkability.toFixed(2)}
+          {
+            place.walkability === null
+              ? "Loading..."
+              : place.walkability === 0
+              ? "N/A"
+              : place.walkability.toFixed(2)
+          }
         </p>
       </div>
 

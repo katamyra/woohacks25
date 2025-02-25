@@ -1,23 +1,12 @@
-"use client";
-import { db } from "../config";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where,
-  DocumentData,
-  doc,
-  setDoc,
-  updateDoc,
-} from "firebase/firestore";
+import { db } from '../config';
+import { collection, addDoc, getDocs, query, where, DocumentData, doc, setDoc, updateDoc } from 'firebase/firestore';
 
 class FirestoreService {
   // Collection references
   collections = {
-    tests: "test_collection",
-    users: "users",
-    userData: "userData",
+    tests: 'test_collection',
+    users: 'users',
+    userData: 'userData'
   };
 
   // Test connection
@@ -25,7 +14,7 @@ class FirestoreService {
     try {
       const docRef = await addDoc(collection(db, this.collections.tests), {
         test: "Hello Firebase!",
-        timestamp: new Date(),
+        timestamp: new Date()
       });
       return { success: true, docId: docRef.id };
     } catch (error) {
@@ -45,9 +34,9 @@ class FirestoreService {
   async getAll(collectionName) {
     try {
       const querySnapshot = await getDocs(collection(db, collectionName));
-      return querySnapshot.docs.map((doc) => ({
+      return querySnapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data(),
+        ...doc.data()
       }));
     } catch (error) {
       throw error;
@@ -56,9 +45,10 @@ class FirestoreService {
 
   async getUserData(uid) {
     try {
-      const querySnapshot = await getDocs(
-        query(collection(db, this.collections.users), where("uid", "==", uid))
-      );
+      const querySnapshot = await getDocs(query(
+        collection(db, this.collections.users),
+        where('uid', '==', uid)
+      ));
       return querySnapshot.docs[0]?.data();
     } catch (error) {
       throw error;
@@ -77,11 +67,11 @@ class FirestoreService {
 
   async updateUser(uid, data) {
     try {
-      await updateDoc(doc(db, "users", uid), data);
+      await updateDoc(doc(db, 'users', uid), data);
       return true;
     } catch (error) {
-      console.error("Firestore update error:", error);
-      throw new Error("Failed to update user document");
+      console.error('Firestore update error:', error);
+      throw new Error('Failed to update user document');
     }
   }
 }

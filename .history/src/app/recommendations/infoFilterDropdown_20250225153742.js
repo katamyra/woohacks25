@@ -1,4 +1,4 @@
-"use client";
+// FilterDropdown.js
 import React from "react";
 
 const FilterDropdown = ({

@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useEffect } from "react";
 import { OverlayView } from "@react-google-maps/api";
 
@@ -58,31 +57,27 @@ const CustomMarker = ({ lat, lng, confidence, acqDate, acqTime }) => {
           width: `${size}px`,
           height: `${size}px`,
           opacity: getOpacity(confidence),
-          transform: `translate(-50%, -50%) ${
-            isVisible ? "scale(1)" : "scale(0.5)"
-          }`, // Scale effect on load
+          transform: `translate(-50%, -50%) ${isVisible ? 'scale(1)' : 'scale(0.5)'}`, // Scale effect on load
           boxShadow: "0 2px 5px rgba(0, 0, 0, 0.3)",
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {isHovered && (
-          <div
-            style={{
-              position: "absolute",
-              bottom: "100%",
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: "rgba(255, 255, 255, 0.9)",
-              padding: "6px",
-              borderRadius: "4px",
-              fontSize: "12px",
-              whiteSpace: "nowrap",
-              zIndex: 10,
-              color: "black",
-              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.3)", // Shadow for tooltip
-            }}
-          >
+          <div style={{
+            position: 'absolute',
+            bottom: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(255, 255, 255, 0.9)',
+            padding: '6px',
+            borderRadius: '4px',
+            fontSize: '12px',
+            whiteSpace: 'nowrap',
+            zIndex: 10,
+            color: 'black', 
+            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.3)", // Shadow for tooltip
+          }}>
             <div>Confidence: {confidence}</div>
             <div>Acquisition Date: {acqDate}</div>
             <div>Acquisition Time: {acqTime}</div>
@@ -93,4 +88,4 @@ const CustomMarker = ({ lat, lng, confidence, acqDate, acqTime }) => {
   );
 };
 
-export default CustomMarker;
+export default CustomMarker;  
