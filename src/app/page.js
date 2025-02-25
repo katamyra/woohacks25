@@ -11,6 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setTestResult('Login button clicked');
+  };
 
 export default function Home() {
   const router = useRouter();
@@ -19,13 +23,6 @@ export default function Home() {
   const [userData, setUserData] = useState(null);
   const [countdown, setCountdown] = useState(0);
   const [redirecting, setRedirecting] = useState(false);
-
-  // Dummy login handler for username/password form (does nothing for now)
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // You can add real login logic here
-    setTestResult('Login button clicked');
-  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -89,9 +86,9 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen">
-      {/* Left side - Login/Welcome Card */}
-      <div className="w-1/2 flex items-center justify-center px-4">
+    <div className="flex h-screen overflow-hidden">
+      {/* Login card */}
+      <div className="w-full md:w-1/2 flex items-start justify-center px-4 pt-4">
         { !user ? (
           // Login Card for not logged in state
           <Card className="w-full max-w-md p-8 bg-card shadow-lg rounded-lg">
@@ -115,7 +112,7 @@ export default function Home() {
             </CardContent>
           </Card>
         ) : (
-          // Welcome Card for logged in user
+          // Welcome card for logged in user
           <Card className="w-full max-w-md p-8 bg-card shadow-lg rounded-lg">
             <CardHeader>
               <h1 className="text-2xl font-bold text-center mb-2">Welcome, {user.displayName.split(' ')[0]}</h1>
@@ -133,11 +130,8 @@ export default function Home() {
         )}
       </div>
 
-      {/* DaisyUI vertical splitter */}
-      <div className="divider divider-vertical divider-accent"></div>
-
-      {/* Right side - Image */}
-      <div className="w-1/2 hidden md:flex items-center justify-center">
+      {/* Image */}
+      <div className="w-full md:w-1/2 flex items-start justify-center pt-4">
         <Image
           src="/map.webp"
           alt="map"
