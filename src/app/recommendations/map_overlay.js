@@ -424,6 +424,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
               }}
             />
           ))}
+
           {/* Render markers for recommended places */}
           {recommendations &&
             recommendations.map((place, idx) => {
