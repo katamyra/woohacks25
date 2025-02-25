@@ -105,10 +105,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, []);
 
-  /**
-   * onMapLoad
-   * Called when the map loads. Sets the map instance and creates a new data layer.
-   */
+  // Load map - set map instance, create datalayer
   const onMapLoad = useCallback((mapInstance) => {
     setMap(mapInstance);
     mapInstance.data.setMap(null);
@@ -118,12 +115,12 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, []);
 
-  // Log landsatData whenever it changes.
+  // Log Landsat Data (fires) whenever it changes
   useEffect(() => {
     console.log("Landsat Data:", landsatData);
   }, [landsatData]);
 
-  // Add listeners to the map's data layer for mouseover/mouseout to display PEI score.
+  // Mouse listeners to display PEI score
   useEffect(() => {
     if (map && window.google) {
       map.data.addListener("mouseover", (e) => {
@@ -134,10 +131,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [map]);
 
-  /**
-   * center
-   * Calculates the center of the map based on landsat data or the current user location.
-   */
+  // Centers the map based on landsat data OR the current user location TODO
   const center = useMemo(() => {
     if (landsatData && landsatData.length > 0) {
       let sumLat = 0, sumLng = 0;
@@ -153,7 +147,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [landsatData, currentUserLocation]);
 
-  // Fit the map bounds to the landsat data points.
+  // Fit the map bounds to the landsat data points TODO
   useEffect(() => {
     if (map && landsatData && landsatData.length > 0 && window.google) {
       const bounds = new window.google.maps.LatLngBounds();
@@ -424,7 +418,6 @@ export default function MapOverlay({ landsatData, recommendations }) {
               }}
             />
           ))}
-
           {/* Render markers for recommended places */}
           {recommendations &&
             recommendations.map((place, idx) => {
