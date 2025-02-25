@@ -464,7 +464,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
                 key={`amenity-${idx}`}
                 position={{ lat, lng }}
                 icon={{
-                  url: "/pngegg (1).png",
+                  url: "/map.png",
                   scaledSize: new window.google.maps.Size(30, 30),
                 }}
               />
@@ -476,6 +476,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
             position={currentUserLocation}
             icon={{
               url: "/current-location.png",
+              scaledSize: new window.google.maps.Size(30, 30),
             }}
           />
         )}
@@ -483,7 +484,6 @@ export default function MapOverlay({ landsatData, recommendations }) {
         {selectedDestinationCoord && (
           <Marker
             position={selectedDestinationCoord}
-            label="Destination"
             icon={{
               url: "/destination.png",
               scaledSize: new window.google.maps.Size(30, 30),
