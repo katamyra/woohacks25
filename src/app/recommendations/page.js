@@ -1,13 +1,17 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import dynamic from "next/dynamic"; // Import Next.js dynamic import
+import dynamic from "next/dynamic";
 import Gallery from "./gallery";
 import { useAuth } from "@/context/AuthContext";
 import { firestoreService } from "@/firebase/services/firestore";
 import { fetchRecommendations } from "@/utils/fetchRecommendations";
 import axios from "axios";
 
-// Dynamically import MapOverlay with SSR disabled
+// Import Redux hooks and destination actions
+import { useDispatch } from "react-redux";
+import { setDestination, clearDestination } from "../features/destination/destinationSlice";
+
+// Import map overlay with SSR disabled
 const MapOverlayNoSSR = dynamic(() => import("./map_overlay"), { ssr: false });
 
 const RecommendationsPage = () => {
@@ -20,9 +24,24 @@ const RecommendationsPage = () => {
   const [landsatData, setLandsatData] = useState([]);
   const { user, loading } = useAuth();
   const [geminiExplanations, setGeminiExplanations] = useState({});
-  const [destination, setDestination] = useState(null);
+  const [destination, setDestinationState] = useState(null);
+  
+  const dispatch = useDispatch();
 
-  // Firestore fetch for user data
+  // Helper function: update both localStorage and Redux state
+  const updateDestination = (newDestination) => {
+    if (newDestination) {
+      localStorage.setItem("destinationCoord", JSON.stringify(newDestination));
+      dispatch(setDestination(newDestination));
+      setDestinationState(newDestination);
+    } else {
+      localStorage.removeItem("destinationCoord");
+      dispatch(clearDestination());
+      setDestinationState(null);
+    }
+  };
+
+  // Fetch user data from Firestore
   useEffect(() => {
     const fetchUserData = async () => {
       if (user) {
@@ -41,7 +60,7 @@ const RecommendationsPage = () => {
     fetchUserData();
   }, [user]);
 
-  // Fetch initial recommendations
+  // Fetch amenity recommendations
   useEffect(() => {
     const fetchInitialRecommendations = async () => {
       if (review && address && lng && lat) {
@@ -56,7 +75,7 @@ const RecommendationsPage = () => {
     fetchInitialRecommendations();
   }, [review, address, lng, lat]);
 
-  // Fetch Gemini explanations
+  // Fetch Gemini AI amenity explanations
   useEffect(() => {
     const fetchExplanations = async () => {
       if (recommendations.length > 0) {
@@ -179,7 +198,7 @@ const RecommendationsPage = () => {
           geminiExplanations={geminiExplanations}
           user={user}
           galleryExpanded={galleryExpanded}
-          onSetDestination={setDestination}
+          onSetDestination={updateDestination}  // Pass helper function
         />
       </div>
 
