@@ -1,4 +1,3 @@
-// SortDropdown.js
 import React from "react";
 
 const SortDropdown = ({ selectedSort, setSelectedSort }) => {

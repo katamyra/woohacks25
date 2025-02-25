@@ -139,10 +139,10 @@ export default function Home() {
       {/* Right side - Image */}
       <div className="w-1/2 hidden md:flex items-center justify-center">
         <Image
-          src="/amogus.png"
-          alt="Among Us"
-          width={400}
-          height={400}
+          src="/map.webp"
+          alt="map"
+          width={2000}
+          height={1500}
           className="object-contain"
         />
       </div>

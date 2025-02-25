@@ -75,7 +75,7 @@ const CustomMarker = ({ lat, lng, confidence, acqDate, acqTime }) => {
             fontSize: '12px',
             whiteSpace: 'nowrap',
             zIndex: 10,
-            color: 'black', // Change text color to black
+            color: 'black', 
             boxShadow: "0 2px 5px rgba(0, 0, 0, 0.3)", // Shadow for tooltip
           }}>
             <div>Confidence: {confidence}</div>

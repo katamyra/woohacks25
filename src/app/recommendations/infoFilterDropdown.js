@@ -13,7 +13,6 @@ const FilterDropdown = ({
     if (selectedFilters.includes(option)) {
       setSelectedFilters(selectedFilters.filter((f) => f !== option));
     } else {
-      // Only add if less than 15 filters are currently selected.
       if (selectedFilters.length < 15) {
         setSelectedFilters([...selectedFilters, option]);
       }
@@ -48,7 +47,6 @@ const FilterDropdown = ({
       />
       <div style={{ maxHeight: "150px", overflowY: "auto" }}>
         {filteredFilterOptions.map((option) => {
-          // Disable option if 15 filters are already selected and this option is not already selected.
           const disabled =
             selectedFilters.length >= 15 && !selectedFilters.includes(option);
           return (

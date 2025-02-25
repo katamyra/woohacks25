@@ -20,7 +20,7 @@ const RecommendationsPage = () => {
   const [geminiExplanations, setGeminiExplanations] = useState({});
   const [destination, setDestination] = useState(null);
 
-  // Firestore fetch 
+  // Firestore fetch (for user data)
   useEffect(() => {
     const fetchUserData = async () => {
       if (user) {
@@ -75,7 +75,6 @@ const RecommendationsPage = () => {
     fetchExplanations();
   }, [recommendations, review]);
 
-  // Helper functions to calculate distance
   function deg2rad(deg) {
     return deg * (Math.PI / 180);
   }
@@ -91,7 +90,7 @@ const RecommendationsPage = () => {
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance in km
+    return R * c; //distance in km
   }
 
   // Define the "altnata" location as Atlanta's coordinates
@@ -173,7 +172,7 @@ const RecommendationsPage = () => {
         </button>
 
         <h2>Recommended Locations</h2>
-        {/* Render the Gallery component */}
+        {/* the Gallery component */}
         <Gallery
           recommendations={recommendations}
           userLocation={{ lat, lng }}

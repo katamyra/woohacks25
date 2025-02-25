@@ -10,7 +10,6 @@ export default function AddressPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [address, setAddress] = useState('');
-  // Start with a null location instead of default coordinates
   const [location, setLocation] = useState(null);
 
   // Load Google Maps API
