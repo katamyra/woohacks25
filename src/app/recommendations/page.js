@@ -1,11 +1,14 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import MapOverlay from "./map_overlay";
+import dynamic from "next/dynamic"; // Import Next.js dynamic import
 import Gallery from "./gallery";
-import { useAuth } from '@/context/AuthContext';
-import { firestoreService } from '@/firebase/services/firestore';
-import { fetchRecommendations } from '@/utils/fetchRecommendations';
-import axios from 'axios';
+import { useAuth } from "@/context/AuthContext";
+import { firestoreService } from "@/firebase/services/firestore";
+import { fetchRecommendations } from "@/utils/fetchRecommendations";
+import axios from "axios";
+
+// Dynamically import MapOverlay with SSR disabled
+const MapOverlayNoSSR = dynamic(() => import("./map_overlay"), { ssr: false });
 
 const RecommendationsPage = () => {
   const [galleryExpanded, setGalleryExpanded] = useState(false);
@@ -16,11 +19,10 @@ const RecommendationsPage = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [landsatData, setLandsatData] = useState([]);
   const { user, loading } = useAuth();
-
   const [geminiExplanations, setGeminiExplanations] = useState({});
   const [destination, setDestination] = useState(null);
 
-  // Firestore fetch (for user data)
+  // Firestore fetch for user data
   useEffect(() => {
     const fetchUserData = async () => {
       if (user) {
@@ -39,7 +41,7 @@ const RecommendationsPage = () => {
     fetchUserData();
   }, [user]);
 
-  // Fetch data needed for recommendations
+  // Fetch initial recommendations
   useEffect(() => {
     const fetchInitialRecommendations = async () => {
       if (review && address && lng && lat) {
@@ -54,6 +56,7 @@ const RecommendationsPage = () => {
     fetchInitialRecommendations();
   }, [review, address, lng, lat]);
 
+  // Fetch Gemini explanations
   useEffect(() => {
     const fetchExplanations = async () => {
       if (recommendations.length > 0) {
@@ -84,16 +87,15 @@ const RecommendationsPage = () => {
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
     const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.sin(dLat / 2) ** 2 +
       Math.cos(deg2rad(lat1)) *
         Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+        Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; //distance in km
+    return R * c;
   }
 
-  // Define the "altnata" location as Atlanta's coordinates
+  // Define a target location (e.g., Atlanta)
   const targetLat = 33.7490;
   const targetLng = -84.3880;
   const thresholdDistanceKm = 50;
@@ -111,9 +113,8 @@ const RecommendationsPage = () => {
           satellite: item.satellite,
         }));
 
-        const filteredData = data.filter(item => {
+        const filteredData = data.filter((item) => {
           const distance = getDistanceFromLatLonInKm(item.lat, item.lng, targetLat, targetLng);
-
           return distance < thresholdDistanceKm;
         });
 
@@ -172,7 +173,6 @@ const RecommendationsPage = () => {
         </button>
 
         <h2>Recommended Locations</h2>
-        {/* the Gallery component */}
         <Gallery
           recommendations={recommendations}
           userLocation={{ lat, lng }}
@@ -185,7 +185,8 @@ const RecommendationsPage = () => {
 
       {!galleryExpanded && (
         <div style={mapStyle}>
-          <MapOverlay
+          {/* Use the dynamically imported MapOverlay with SSR disabled */}
+          <MapOverlayNoSSR
             landsatData={landsatData}
             recommendations={recommendations}
             userLocation={{ lat, lng }}

@@ -17,16 +17,12 @@ function getORSProfile(mode) {
 
 export const fetchSafeRouteORS = async (origin, destinationCoord, firePolygonsCollection) => {
   try {
-    const orsApiKey = process.env.NEXT_PUBLIC_ORS_API_KEY;
-    if (!orsApiKey) {
-      throw new Error("ORS API key is missing");
-    }
-
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const userLocation = storedUser?.userLocation;
     const avoidPolygons = JSON.parse(localStorage.getItem("avoidPolygons"));
     const transportation = storedUser?.transportation;
     const orsProfile = getORSProfile(transportation);
+
     if (!userLocation) {
       throw new Error("User location is missing in localStorage");
     }
@@ -35,19 +31,22 @@ export const fetchSafeRouteORS = async (origin, destinationCoord, firePolygonsCo
 
     const requestBody = {
       coordinates: [
-        [userLocation.lng, userLocation.lat], // User's current location
-        [destinationCoord.lng, destinationCoord.lat]    // Destination (UGA in your case)
+        [userLocation.lng, userLocation.lat], // User's current coords
+        [destinationCoord.lng, destinationCoord.lat]    // Destination coords
       ],
       options: {
         avoid_polygons: avoidPolygons
       }
     };
 
-    const url = `https://api.openrouteservice.org/v2/directions/${orsProfile}/geojson`;
+    // Call the proxy API route instead of ORS directly.
+    const url = `/api/ors-proxy`;
 
-    const response = await axios.post(url, requestBody, {
+    const response = await axios.post(url, {
+      requestBody,
+      orsProfile
+    }, {
       headers: {
-        Authorization: orsApiKey,
         "Content-Type": "application/json"
       }
     });
