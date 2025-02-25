@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { useAuth } from '@/context/AuthContext';
 import { useSelector, useDispatch } from 'react-redux';
-import { addCoordinate, resetCoordinates } from '../features/coordinates/coordinatesSlice';
 import { setDestination } from '../features/destination/destinationSlice';
 const InfoPopup = ({ place, geminiExplanation, onClose }) => {
   const { user, loading } = useAuth();
