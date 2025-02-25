@@ -37,7 +37,7 @@ export default function AddressPage() {
     }
   }, []);
 
-  // Reverse geocode the current location to autofill the address once the API is loaded
+  // Reverse geocode the current location to autofill address upon API first load
   useEffect(() => {
     if (isLoaded && location && address === '') {
       const geocoder = new window.google.maps.Geocoder();
@@ -55,7 +55,7 @@ export default function AddressPage() {
     setAddress(event.target.value);
   };
 
-  // Trigger geocoding when the user presses Enter in the address input field
+  // Trigger geocoding when the user presses Enter and enters the address
   const handleApply = () => {
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ address }, (results, status) => {
@@ -150,7 +150,7 @@ export default function AddressPage() {
       {isLoaded && location && (
         <div className="w-1/2 h-full">
           <GoogleMap
-            mapContainerStyle={{ width: '100%', height: 'calc(79.65%)' }}
+            mapContainerStyle={{ width: '100%', height: '80%' }}
             center={location}
             zoom={14}
           >

@@ -429,7 +429,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
         onLoad={onMapLoad}
         center={center}
         zoom={15}
-        mapContainerStyle={{ width: "100%", height: "100%" }}
+        mapContainerStyle={{ width: "97.4%", height: "80%" }}
       >
         {landsatData &&
           landsatData.map((dataPoint, index) => (
