@@ -283,7 +283,7 @@ const Gallery = ({
     "Professional / Home Services",
   ];
 
-  // Compute only those filter groups that have at least one corresponding amenity.
+  // Create filters if amenities exist for that tag
   const existingFilterOptions = useMemo(() => {
     const existing = new Set();
     enhancedRecommendations.forEach((rec) => {
@@ -295,15 +295,15 @@ const Gallery = ({
     return fixedFilters.filter((option) => existing.has(option));
   }, [enhancedRecommendations, fixedFilters]);
 
-  // Filter available options based on the user's input.
+  // Filter options
   const filteredFilterOptions = useMemo(() => {
     return existingFilterOptions.filter((option) =>
       option.toLowerCase().includes(filterSearch.toLowerCase())
     );
   }, [existingFilterOptions, filterSearch]);
 
-  // When filters are selected, only include recommendations that have at least one matching filter group.
-  // If no filters are selected, include all recommendations.
+  // Filter amenities by categories
+  // No filters -> include all amenities
   const filteredRecommendations = useMemo(() => {
     if (selectedFilters.length > 0) {
       return enhancedRecommendations.filter(
@@ -327,7 +327,7 @@ const Gallery = ({
     return recs;
   }, [filteredRecommendations, selectedSort]);
 
-  // Always display at most 15 amenities.
+  // Always display at most 15 amenities
   const displayedRecommendations = sortedRecommendations.slice(0, 15);
 
   const cardsContainerStyle = galleryExpanded
@@ -340,7 +340,7 @@ const Gallery = ({
     : { display: "flex", flexDirection: "column", gap: "10px" };
 
   return (
-    <div className="gallery">
+    <div className="gallery h-[68vh] overflow-y-auto p-4">
       <div
         style={{
           display: "flex",
