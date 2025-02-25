@@ -474,10 +474,8 @@ export default function MapOverlay({ landsatData, recommendations }) {
         {currentUserLocation && (
           <Marker
             position={currentUserLocation}
-            label="Me"
             icon={{
               url: "/current-location.png",
-              scaledSize: new window.google.maps.Size(30, 30),
             }}
           />
         )}
