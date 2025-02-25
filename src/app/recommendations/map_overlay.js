@@ -18,8 +18,7 @@ import CustomMarker from "./CustomMarker";
 import { useAuth } from "@/context/AuthContext";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { decodeORSGeometry } from "@/utils/decodeORSGeometry";
-import { useSelector, useDispatch } from "react-redux";
-import { setDestination, clearDestination } from "../features/destination/destinationSlice";
+import { useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 
 // Helper function for comparing coordinates
@@ -28,7 +27,7 @@ function areCoordinatesEqual(coord1, coord2) {
   return Number(coord1.lat) === Number(coord2.lat) && Number(coord1.lng) === Number(coord2.lng);
 }
 
-// Helper function for color (you may already have a getColor function defined elsewhere)
+// Helper function to decide colors for block group polygons based on PEI score
 function getColor(value) {
   const score = Math.max(0, Math.min(1, value));
   if (score > 0.95) return "#006400";
@@ -46,22 +45,19 @@ function getColor(value) {
 }
 
 export default function MapOverlay({ landsatData, recommendations }) {
-  // Guard against server-side rendering.
   if (typeof window === "undefined") {
     return null;
   }
 
-  // Load the Google Maps JavaScript API.
+  // Load the Google Map
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   });
 
-  // All hooks are declared below so they run in the same order on every render.
   const { user } = useAuth();
-  const dispatch = useDispatch();
 
-  // Local state declarations.
+  // Declare states
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [hoverScore, setHoverScore] = useState(null);
@@ -70,39 +66,19 @@ export default function MapOverlay({ landsatData, recommendations }) {
   const [currentUserLocation, setCurrentUserLocation] = useState(null);
   const [directions, setDirections] = useState(null);
 
-  // Ref to store the route data layer.
+  // Ref to store the route data layer
   const routeDataLayerRef = useRef(null);
-  // Ref to store the previous destination.
+  // Ref to store the previous destination
   const prevDestinationRef = useRef(null);
-  // Ref for tracking auto‑zoom (to ensure auto‑center/zoom runs only once per new route).
+  // Ref for tracking auto‑zoom/auto-center (flag)
   const hasAutoZoomed = useRef(false);
 
-  // Get the selected destination coordinate from Redux state.
+  // Get the Selected Destination coords from redux
   const selectedDestinationCoord = useSelector(
     (state) => state.destination.destination
   );
 
-  // Poll localStorage for destination coordinates and update Redux state.
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const storedDestination = localStorage.getItem("destinationCoord");
-      if (storedDestination) {
-        const parsedDestination = JSON.parse(storedDestination);
-        // Only dispatch if the new destination is different from the current one.
-        if (!areCoordinatesEqual(parsedDestination, selectedDestinationCoord)) {
-          dispatch(setDestination(parsedDestination));
-        }
-      } else {
-        // Optionally dispatch clearDestination only if there's a current destination.
-        if (selectedDestinationCoord) {
-          dispatch(clearDestination());
-        }
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [dispatch, selectedDestinationCoord]);
-
-  // Reset the auto‑zoom flag when a new destination is set.
+  // Reset the auto-zoom/center flag when destination coords change
   useEffect(() => {
     if (selectedDestinationCoord) {
       if (!areCoordinatesEqual(selectedDestinationCoord, prevDestinationRef.current)) {
@@ -129,29 +105,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, []);
 
-  // Request and set driving directions from the current user location to the destination.
-  useEffect(() => {
-    if (currentUserLocation && selectedDestinationCoord && window.google) {
-      const directionsService = new window.google.maps.DirectionsService();
-      const request = {
-        origin: currentUserLocation,
-        destination: selectedDestinationCoord,
-        travelMode: window.google.maps.TravelMode.DRIVING,
-      };
-      directionsService.route(request, (result, status) => {
-        if (status === window.google.maps.DirectionsStatus.OK) {
-          setDirections(result);
-        } else {
-          console.error("Error fetching directions:", result);
-        }
-      });
-    }
-  }, [currentUserLocation, selectedDestinationCoord]);
-
-  /**
-   * onMapLoad
-   * Called when the map loads. Sets the map instance and creates a new data layer.
-   */
+  // Load map - set map instance, create datalayer
   const onMapLoad = useCallback((mapInstance) => {
     setMap(mapInstance);
     mapInstance.data.setMap(null);
@@ -161,12 +115,12 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, []);
 
-  // Log landsatData whenever it changes.
+  // Log Landsat Data (fires) whenever it changes
   useEffect(() => {
     console.log("Landsat Data:", landsatData);
   }, [landsatData]);
 
-  // Add listeners to the map's data layer for mouseover/mouseout to display PEI score.
+  // Mouse listeners to display PEI score
   useEffect(() => {
     if (map && window.google) {
       map.data.addListener("mouseover", (e) => {
@@ -177,10 +131,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [map]);
 
-  /**
-   * center
-   * Calculates the center of the map based on landsat data or the current user location.
-   */
+  // Centers the map based on landsat data OR the current user location TODO
   const center = useMemo(() => {
     if (landsatData && landsatData.length > 0) {
       let sumLat = 0, sumLng = 0;
@@ -196,7 +147,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [landsatData, currentUserLocation]);
 
-  // Fit the map bounds to the landsat data points.
+  // Fit the map bounds to the landsat data points TODO
   useEffect(() => {
     if (map && landsatData && landsatData.length > 0 && window.google) {
       const bounds = new window.google.maps.LatLngBounds();
@@ -438,7 +389,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
         <GoogleMap
           onLoad={onMapLoad}
           center={center}
-          zoom={15}
+          zoom={17.2}
           mapContainerStyle={{ width: "97.4%", height: "80%" }}
         >
           {/* Render custom markers for each Landsat data point */}
@@ -467,7 +418,6 @@ export default function MapOverlay({ landsatData, recommendations }) {
               }}
             />
           ))}
-
           {/* Render markers for recommended places */}
           {recommendations &&
             recommendations.map((place, idx) => {
