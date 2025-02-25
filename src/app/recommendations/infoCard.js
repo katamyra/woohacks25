@@ -82,7 +82,6 @@ const InfoCard = ({
           {" • "}
           Walkability:{" "}
           {
-            // If walkability is null, show "Loading...", if 0 then "N/A", otherwise display the value rounded to two decimals.
             place.walkability === null
               ? "Loading..."
               : place.walkability === 0

@@ -1,4 +1,4 @@
-// src/app/store.js
+//store for the detination infomation (amenities)
 import { configureStore } from '@reduxjs/toolkit';
 import destinationReducer from './features/destination/destinationSlice';
 

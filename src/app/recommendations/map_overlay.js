@@ -64,7 +64,6 @@ function convertCoords(coordsArray) {
     console.warn("Invalid coordinates array:", coordsArray);
     return [];
   }
-  // Filter out any element that isn't a valid array with at least two numbers
   return coordsArray
     .filter((coord) => Array.isArray(coord) && coord.length >= 2)
     .map(([lng, lat]) => ({ lat, lng }));
@@ -103,8 +102,8 @@ export default function MapOverlay({ landsatData, recommendations }) {
   const [routeDataLayer, setRouteDataLayer] = useState(null); 
   const [destinationCoord, setDestinationCoord] = useState(null);
   const [directions, setDirections] = useState(null);
-  const [hasZoomed, setHasZoomed] = useState(false); // Track if zoom has occurred
-  const userInteracted = useRef(false); // Track user interaction
+  const [hasZoomed, setHasZoomed] = useState(false); 
+  const userInteracted = useRef(false); 
 
   const selectedDestinationCoord = useSelector((state) => state.destination.destinationCoord);
 
@@ -165,7 +164,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
   const onMapLoad = useCallback((mapInstance) => {
     setMap(mapInstance);
     mapInstance.data.setMap(null);
-    mapInstance.addListener('click', handleMapClick); // Listen for user clicks
+    mapInstance.addListener('click', handleMapClick); 
   }, []);
 
   useEffect(() => {
@@ -361,14 +360,12 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [selectedDestinationCoord, currentUserLocation, map]);
 
-  // Reset zoom state when destination is cleared
   useEffect(() => {
     if (!selectedDestinationCoord) {
       setHasZoomed(false); // Reset zoom state when destination is cleared
     }
   }, [selectedDestinationCoord]);
 
-  // Track user interaction with the map
   const handleMapClick = () => {
     userInteracted.current = true; // User has interacted with the map
   };
@@ -399,7 +396,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     cursor: "default",
   };
   const storedUser = JSON.parse(localStorage.getItem("user"));
-  const userLocation = storedUser?.userLocation; // optional chaining 사용
+  const userLocation = storedUser?.userLocation; 
   return (
     <div style={{ flex: 1, position: "relative" }}>
       <div

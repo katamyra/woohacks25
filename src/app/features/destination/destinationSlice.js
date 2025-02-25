@@ -1,4 +1,3 @@
-// src/features/destination/destinationSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {

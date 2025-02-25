@@ -30,20 +30,17 @@ export default function AlertNotifier() {
         return;
       }
 
-      // Get the current predefined notification
+      // notitfication object
       const current = predefinedNotifications[notificationIndex.current];
-
-      // Create a new notification object with an id and timestamp
       const newNotification = {
         id: Date.now(),
         message: current.message,
         timestamp: new Date().toLocaleTimeString(),
       };
 
-      // Instead of a browser alert, show a DaisyUI alert popup by setting local state
       setVisibleAlert(newNotification);
 
-      // Clear any existing dismiss timer so that only one is active at a time.
+      // clear any existing dismiss timer
       if (alertTimeoutRef.current) {
         clearTimeout(alertTimeoutRef.current);
       }

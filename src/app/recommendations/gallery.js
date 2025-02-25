@@ -213,9 +213,7 @@ const Gallery = ({
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [filterSearch, setFilterSearch] = useState("");
 
-  // State to store walkability GeoJSON once fetched and merged with scores.
   const [walkabilityData, setWalkabilityData] = useState(null);
-  // State for real ETA values fetched via fetchSafeRouteORS, mapping recommendation's place_id to its ETA.
   const [etaMap, setEtaMap] = useState({});
 
   // Fetch walkability data (CSV and GeoJSON) and merge PEI scores
@@ -332,7 +330,6 @@ const Gallery = ({
   // Always display at most 15 amenities.
   const displayedRecommendations = sortedRecommendations.slice(0, 15);
 
-  // Use grid layout when gallery is expanded, otherwise stack cards vertically.
   const cardsContainerStyle = galleryExpanded
     ? {
         display: "grid",
@@ -344,7 +341,6 @@ const Gallery = ({
 
   return (
     <div className="gallery">
-      {/* Dropdown controls with higher z-index, gap for separation, and mutual collapse logic */}
       <div
         style={{
           display: "flex",
@@ -437,7 +433,6 @@ const Gallery = ({
         </div>
       )}
 
-      {/* Render the (up to 15) amenity InfoCards in either grid or list layout */}
       <div style={cardsContainerStyle}>
         {displayedRecommendations.length > 0 ? (
           displayedRecommendations.map((place, index) => (
