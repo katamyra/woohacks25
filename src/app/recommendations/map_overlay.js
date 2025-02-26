@@ -20,6 +20,7 @@ import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { decodeORSGeometry } from "@/utils/decodeORSGeometry";
 import { useSelector } from "react-redux";
 import dynamic from "next/dynamic";
+import InfoPopup from "./infoPopup";
 
 // Helper function for comparing coordinates
 function areCoordinatesEqual(coord1, coord2) {
@@ -44,7 +45,7 @@ function getColor(value) {
   return "#8B0000";
 }
 
-export default function MapOverlay({ landsatData, recommendations }) {
+export default function MapOverlay({ landsatData, recommendations, onSetDestination, geminiExplanations }) {
   if (typeof window === "undefined") {
     return null;
   }
@@ -63,20 +64,22 @@ export default function MapOverlay({ landsatData, recommendations }) {
   const [routeInfo, setRouteInfo] = useState(null);
   const [currentUserLocation, setCurrentUserLocation] = useState(null);
   const [directions, setDirections] = useState(null);
+  // New state: currently selected amenity (if any)
+  const [selectedAmenity, setSelectedAmenity] = useState(null);
 
   // Ref to store the route data layer
   const routeDataLayerRef = useRef(null);
   // Ref to store the previous destination
   const prevDestinationRef = useRef(null);
-  // Ref for tracking auto‑zoom/auto-center (flag)
+  // Ref for tracking auto‑zoom/auto‑center (flag)
   const hasAutoZoomed = useRef(false);
 
-  // Get the Selected Destination coords from redux
+  // Get the selected Destination coords from redux
   const selectedDestinationCoord = useSelector(
     (state) => state.destination.destination
   );
 
-  // Reset the auto-zoom/center flag when destination coords change
+  // Reset the auto‑zoom/center flag when destination coords change
   useEffect(() => {
     if (selectedDestinationCoord) {
       if (!areCoordinatesEqual(selectedDestinationCoord, prevDestinationRef.current)) {
@@ -86,7 +89,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [selectedDestinationCoord]);
 
-  // Fetch the manually set user location from localStorage (instead of using geolocation API)
+  // Fetch the input location from localStorage
   useEffect(() => {
     const storedUserData = localStorage.getItem("userData");
     if (storedUserData) {
@@ -103,7 +106,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, []);
 
-  // Load map - set map instance, create datalayer
+  // Load map – set map instance, create data layer
   const onMapLoad = useCallback((mapInstance) => {
     setMap(mapInstance);
     mapInstance.data.setMap(null);
@@ -377,7 +380,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
           zoom={17.2}
           mapContainerStyle={{ width: "97.4%", height: "80%" }}
         >
-          {/* Render markers for fire Landsat data point */}
+          {/* Render markers for Landsat fires */}
           {landsatData &&
             landsatData.map((dataPoint, index) => (
               <CustomMarker
@@ -418,6 +421,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
                     url: "/pin.png",
                     scaledSize: new window.google.maps.Size(30, 30),
                   }}
+                  onClick={() => setSelectedAmenity(place)}
                 />
               );
             })}
@@ -445,6 +449,17 @@ export default function MapOverlay({ landsatData, recommendations }) {
           {/* Render driving directions if available */}
           {directions && <DirectionsRenderer directions={directions} />}
         </GoogleMap>
+      )}
+      {/* Display popup when amenity is selected */}
+      {selectedAmenity && (
+        <InfoPopup
+          place={selectedAmenity}
+          geminiExplanation={
+            geminiExplanations && geminiExplanations[selectedAmenity.place_id]
+          }
+          onClose={() => setSelectedAmenity(null)}
+          onSetDestination={onSetDestination}
+        />
       )}
     </div>
   );
