@@ -158,10 +158,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [map, landsatData]);
 
-  /**
-   * Memoized firePolygons
-   * Creates buffered polygon coordinates from the landsat data.
-   */
+  // Create buffer polygon around fires for fire circumvention
   const firePolygons = useMemo(() => {
     return landsatData.map((dataPoint) => {
       const point = turf.point([dataPoint.lng, dataPoint.lat]);
@@ -170,23 +167,20 @@ export default function MapOverlay({ landsatData, recommendations }) {
     });
   }, [landsatData]);
 
-  /**
-   * Memoized avoidPolygons
-   * Constructs a GeoJSON MultiPolygon object from the firePolygons.
-   */
+  // Construct GEOJSON from fire polygon
   const avoidPolygons = useMemo(() => ({
     type: "MultiPolygon",
     coordinates: firePolygons,
   }), [firePolygons]);
 
-  // Store avoidPolygons in localStorage.
+  // Store avoidPolygons in localStorage
   useEffect(() => {
     if (avoidPolygons) {
       localStorage.setItem("avoidPolygons", JSON.stringify(avoidPolygons));
     }
   }, [avoidPolygons]);
 
-  // Auto‑zoom and center the map (runs once per new destination).
+  // Auto‑zoom and center the map (runs once per new destination)
   const autoZoomAndCenter = useCallback(() => {
     if (hasAutoZoomed.current) return;
     if (map && currentUserLocation && selectedDestinationCoord && window.google) {
@@ -198,7 +192,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [map, currentUserLocation, selectedDestinationCoord]);
 
-  // Fetch safe route data via the proxy API and add it to the data layer.
+  // Fetch safe route data via ORS API and store the data layer
   useEffect(() => {
     if (
       selectedDestinationCoord &&
@@ -225,7 +219,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
               },
               properties: {},
             };
-            // Remove any existing features and add the new route.
+
             routeDataLayerRef.current.forEach((feature) =>
               routeDataLayerRef.current.remove(feature)
             );
@@ -244,17 +238,14 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [selectedDestinationCoord, map, currentUserLocation, autoZoomAndCenter, firePolygons]);
 
-  // Clear the route from the data layer when no destination is selected.
+  // Clear the route from the data layer when no destination is selected
   useEffect(() => {
     if (!selectedDestinationCoord && routeDataLayerRef.current) {
       routeDataLayerRef.current.forEach((feature) => routeDataLayerRef.current.remove(feature));
     }
   }, [selectedDestinationCoord]);
 
-  /**
-   * toggleGeoJson
-   * Toggles the display of the geoJSON overlay on the map.
-   */
+  // Toggle GEOJSON display on map
   const toggleGeoJson = async () => {
     if (!map) return;
     if (overlayVisible) {
@@ -322,7 +313,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   };
 
-  // Common style objects for UI elements.
+  // Common style objects for UI elements
   const commonStyle = {
     background: isButtonHovered ? "rgb(235, 235, 235)" : "#fff",
     boxShadow: "0 0px 2px rgba(24, 24, 24, 0.3)",
@@ -349,13 +340,13 @@ export default function MapOverlay({ landsatData, recommendations }) {
     cursor: "default",
   };
 
-  // Retrieve user location from localStorage.
+  // Retrieve user location from localStorage
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const userLocation = storedUser?.userLocation;
 
   return (
     <div style={{ flex: 1, position: "relative" }}>
-      {/* UI controls for toggling the geoJSON overlay */}
+      {/* UI controls for toggling the GEOJSON overlay */}
       <div
         style={{
           position: "absolute",
@@ -392,7 +383,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
           zoom={17.2}
           mapContainerStyle={{ width: "97.4%", height: "80%" }}
         >
-          {/* Render custom markers for each Landsat data point */}
+          {/* Render markers for fire Landsat data point */}
           {landsatData &&
             landsatData.map((dataPoint, index) => (
               <CustomMarker
@@ -418,11 +409,13 @@ export default function MapOverlay({ landsatData, recommendations }) {
               }}
             />
           ))}
-          {/* Render markers for recommended places */}
+          {/* Render markers for amenities */}
           {recommendations &&
             recommendations.map((place, idx) => {
               const lat = place.geometry.location.lat;
               const lng = place.geometry.location.lng;
+              console.log("Amenity latitude:", lat)
+              console.log("Amenity longitude:", lng)
               return (
                 <Marker
                   key={`amenity-${idx}`}
