@@ -85,7 +85,10 @@ export function Header() {
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavigation('/about')}>
+                <button
+                  onClick={() => handleNavigation('/about')}
+                  className="hover:bg-blue-600"
+                >
                   About
                 </button>
               </li>
