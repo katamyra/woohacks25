@@ -18,10 +18,15 @@ function getORSProfile(mode) {
 export const fetchSafeRouteORS = async (origin, destinationCoord, firePolygonsCollection) => {
   try {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    const userLocation = storedUser?.userLocation;
+    const userLocation = JSON.parse(localStorage.getItem("userData")).address.coordinates;
     const avoidPolygons = JSON.parse(localStorage.getItem("avoidPolygons"));
     const transportation = storedUser?.transportation;
     const orsProfile = getORSProfile(transportation);
+    const orsApiKey = process.env.NEXT_PUBLIC_ORS_API_KEY;
+
+    if(!orsApiKey) {
+      throw new Error("ORS API key is missing");
+    }
 
     if (!userLocation) {
       throw new Error("User location is missing in localStorage");
@@ -38,15 +43,11 @@ export const fetchSafeRouteORS = async (origin, destinationCoord, firePolygonsCo
         avoid_polygons: avoidPolygons
       }
     };
-
-    // Call the proxy API route instead of ORS directly.
-    const url = `/api/ors-proxy`;
-
-    const response = await axios.post(url, {
-      requestBody,
-      orsProfile
-    }, {
+  
+    const url = `https://api.openrouteservice.org/v2/directions/${orsProfile}/geojson`;
+    const response = await axios.post(url, requestBody, {
       headers: {
+        "Authorization": orsApiKey,
         "Content-Type": "application/json"
       }
     });

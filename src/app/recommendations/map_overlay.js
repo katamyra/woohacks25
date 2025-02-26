@@ -55,8 +55,6 @@ export default function MapOverlay({ landsatData, recommendations }) {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   });
 
-  const { user } = useAuth();
-
   // Declare states
   const [map, setMap] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -350,8 +348,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
   };
 
   // Retrieve user location from localStorage.
-  const storedUser = JSON.parse(localStorage.getItem("user"));
-  const userLocation = storedUser?.userLocation;
+  const userLocation = localStorage.getItem("address");
 
   return (
     <div style={{ flex: 1, position: "relative" }}>
