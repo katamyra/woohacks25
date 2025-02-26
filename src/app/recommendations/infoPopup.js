@@ -16,12 +16,23 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
   const destinationCoord = { lat, lng };
   const dispatch = useDispatch();
 
+  // Fetch user location from Firestore
   useEffect(() => {
     const fetchUserData = async () => {
       if (user) {
         try {
           const userData = await firestoreService.getUserData(user.uid);
-          console.log("userLocation", userLocation);
+          if (
+            userData &&
+            userData.address &&
+            userData.address.coordinates &&
+            userData.address.coordinates.lat &&
+            userData.address.coordinates.lng
+          ) {
+            setUserLocation(userData.address.coordinates);
+          } else {
+            console.error("User data does not contain address coordinates");
+          }
         } catch (error) {
           console.error("Error fetching user data:", error);
         }
@@ -51,6 +62,8 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
       .catch((error) => {
         console.error("Error fetching safe route:", error);
       });
+    // Close the popup automatically
+    onClose();
   };
 
   return (
