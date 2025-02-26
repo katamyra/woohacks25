@@ -251,6 +251,8 @@ const Gallery = ({
             { lat: rec.geometry.location.lat, lng: rec.geometry.location.lng },
             firePolygonsCollection
           );
+
+          console.log("routeData", routeData);
           return { placeId: rec.place_id, eta: routeData.eta };
         } catch (error) {
           console.error(`Error fetching ETA for ${rec.place_id}:`, error);
