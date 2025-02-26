@@ -75,20 +75,22 @@ export default function RootLayout({ children }) {
               />
 
               {scriptLoaded && (
-                <df-messenger
-                  project-id={process.env.NEXT_PUBLIC_PROJECT_ID}
-                  agent-id={process.env.NEXT_PUBLIC_AGENT_ID}
-                  language-code="en"
-                  chat-title="Emergency Assistant"
-                  style={{
-                    width: "100%",
-                    maxWidth: "400px",
-                    height: "500px",
-                    position: "fixed",
-                    bottom: "20px",
-                    right: "20px",
-                  }}
-                ></df-messenger>
+                <div className="hidden md:block">
+                  <df-messenger
+                    project-id={process.env.NEXT_PUBLIC_PROJECT_ID}
+                    agent-id={process.env.NEXT_PUBLIC_AGENT_ID}
+                    language-code="en"
+                    chat-title="Emergency Assistant"
+                    style={{
+                      width: "100%",
+                      maxWidth: "400px",
+                      height: "500px",
+                      position: "fixed",
+                      bottom: "20px",
+                      right: "20px",
+                    }}
+                  ></df-messenger>
+                </div>
               )}
             </NotificationProvider>
           </AuthProvider>
