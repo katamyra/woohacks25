@@ -115,8 +115,23 @@ const RecommendationsPage = () => {
     return R * c;
   }
 
-  // Landsat data 50 miles within user coords
-  const thresholdDistanceKm = 50 * 1.609344;
+  // Landsat data preferred miles within user coords
+  const storedUserData = localStorage.getItem("userData");
+  let userMaxDistance = 50; // default value if no preference exists
+
+  if (storedUserData) {
+    try {
+      const userData = JSON.parse(storedUserData);
+      if (userData.preferences && userData.preferences.maxDistance) {
+        userMaxDistance = userData.preferences.maxDistance;
+      }
+    } catch (error) {
+      console.error("Error parsing userData for maxDistance:", error);
+    }
+  }
+
+  const thresholdDistanceKm = (userMaxDistance+5) * 1.609344;
+
   useEffect(() => {
     // Fetch landsat data if valid coords exist
     if (!lat || !lng) return;
