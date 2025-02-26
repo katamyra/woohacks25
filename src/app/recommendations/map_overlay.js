@@ -428,7 +428,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
                   key={`amenity-${idx}`}
                   position={{ lat, lng }}
                   icon={{
-                    url: "/pngegg (1).png",
+                    url: "/pin.png",
                     scaledSize: new window.google.maps.Size(30, 30),
                   }}
                 />
