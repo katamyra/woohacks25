@@ -62,7 +62,7 @@ export default function RootLayout({ children }) {
 
               <footer className="bg-gray-800 text-gray-300 py-4">
                 <div className="container mx-auto text-center">
-                  &copy; {new Date().getFullYear()} Emergency Assistance App. All rights reserved.
+                  &copy; {new Date().getFullYear()} ©2025 BuzzLine. All rights reserved.
                 </div>
               </footer>
 
