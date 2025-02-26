@@ -237,30 +237,35 @@ const Gallery = ({
     fetchWalkabilityData();
   }, []);
 
+  // Fetch real ETA values for each recommendation using fetchSafeRouteORS
   // Fetch real ETA values for each recommendation using fetchSafeRouteORS.
-  useEffect(() => {
-    async function fetchEtas() {
-      const newEtaMap = {};
-      for (const rec of recommendations) {
-        try {
-          const routeData = await fetchSafeRouteORS(
-            userLocation,
-            { lat: rec.geometry.location.lat, lng: rec.geometry.location.lng },
-            localStorage.getItem("firePolygonsCollection")
-          );
-          // Store only ETA
-          newEtaMap[rec.place_id] = routeData.eta;
-        } catch (error) {
-          console.error(`Error fetching ETA for ${rec.place_id}:`, error);
-          newEtaMap[rec.place_id] = 0;
-        }
+useEffect(() => {
+  async function fetchEtas() {
+    const firePolygonsCollection = localStorage.getItem("firePolygonsCollection");
+    console.log("Retrieved firePolygonsCollection from localStorage:", firePolygonsCollection);
+    const newEtaMap = {};
+    for (const rec of recommendations) {
+      try {
+        const routeData = await fetchSafeRouteORS(
+          userLocation,
+          { lat: rec.geometry.location.lat, lng: rec.geometry.location.lng },
+          firePolygonsCollection
+        );
+        console.log(`Route data for ${rec.place_id}:`, routeData);
+        // Store only ETA
+        newEtaMap[rec.place_id] = routeData.eta;
+      } catch (error) {
+        console.error(`Error fetching ETA for ${rec.place_id}:`, error);
+        newEtaMap[rec.place_id] = 0;
       }
-      setEtaMap(newEtaMap);
     }
-    if (recommendations.length > 0) {
-      fetchEtas();
-    }
-  }, [recommendations, userLocation]);
+    setEtaMap(newEtaMap);
+  }
+  if (recommendations.length > 0) {
+    fetchEtas();
+  }
+}, [recommendations, userLocation]);
+
 
   // Simplify enhanced recommendations
   const enhancedRecommendations = useMemo(() => {
