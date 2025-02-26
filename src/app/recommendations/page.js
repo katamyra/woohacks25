@@ -141,7 +141,7 @@ const RecommendationsPage = () => {
     }
   }
 
-  const thresholdDistanceKm = (userMaxDistance+5) * 1.609344;
+  const thresholdDistanceKm = (userMaxDistance+150) * 1.609344;
 
   useEffect(() => {
     // Fetch landsat data if valid coords exist
