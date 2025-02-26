@@ -11,6 +11,8 @@ export default async function handler(req, res) {
       `https://firms.modaps.eosdis.nasa.gov/usfs/api/area/csv/86826bfcd41fb44eb1413d50232a1444/LANDSAT_NRT/world/1/${yesterdayFormatted}`
     );
 
+    console.log("NASA Landsat query response (CSV):", response.data)
+
     // Convert CSV to JSON
     const csvData = response.data.trim().split("\n");
     const headers = csvData[0].split(",");
