@@ -115,14 +115,14 @@ const RecommendationsPage = () => {
     return R * c;
   }
 
-  // Define a target location (e.g., Atlanta)
-  const targetLat = 33.7490;
-  const targetLng = -84.3880;
-  const thresholdDistanceKm = 50;
+  // Use user's input address coordinates for filtering which fires to render
+  const thresholdDistanceKm = 50 * 1.609344; //KM to miles
   useEffect(() => {
+    // Only fetch Landsat data if the user coordinates are available
+    if (!lat || !lng) return;
     const fetchLandsatData = async () => {
       try {
-        const response = await axios.get("/api/landsat"); // API route
+        const response = await axios.get("/api/landsat"); // NASA Landsat API route
         const data = response.data.data.map((item) => ({
           lat: parseFloat(item.latitude),
           lng: parseFloat(item.longitude),
@@ -134,7 +134,7 @@ const RecommendationsPage = () => {
         }));
 
         const filteredData = data.filter((item) => {
-          const distance = getDistanceFromLatLonInKm(item.lat, item.lng, targetLat, targetLng);
+          const distance = getDistanceFromLatLonInKm(item.lat, item.lng, lat, lng);
           return distance < thresholdDistanceKm;
         });
 
@@ -146,7 +146,7 @@ const RecommendationsPage = () => {
     };
 
     fetchLandsatData();
-  }, []);
+  }, [lat, lng]);
 
   const toggleGallery = () => setGalleryExpanded(!galleryExpanded);
 
