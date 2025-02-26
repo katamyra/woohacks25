@@ -1,3 +1,4 @@
+// layout.js
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,13 +6,12 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { NotificationProvider } from "@/context/NotificationContext";
 import Script from "next/script";
-import { usePathname } from "next/navigation";
 import AlertNotifier from "@/components/AlertNotifier";
 import { Header } from "@/components/ui/Header";
 import { Roboto } from "next/font/google";
-import StepsProgress from "@/components/ui/StepsProgress";
+import StepsProgressWrapper from "@/components/StepsProgressWrapper";
 import { Provider } from "react-redux";
-import { store } from "@/redux/store"; // ✅ Correct Redux store import
+import { store } from "@/redux/store";
 
 const roboto = Roboto({
   weight: ["400", "500", "700"],
@@ -19,7 +19,6 @@ const roboto = Roboto({
 });
 
 export default function RootLayout({ children }) {
-  const pathname = usePathname();
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const steps = [
     { name: "Login", path: "/" },
@@ -54,19 +53,24 @@ export default function RootLayout({ children }) {
 
               <main className="flex-grow bg-gray-800 text-gray-100 pb-12">
                 <div className="container mx-auto px-4 py-4 h-full">
+<<<<<<< HEAD
                   {pathname !== "/about" && ( // Hide steps progress on about page
                     <div className="flex justify-between items-center mb-4">
                       <StepsProgress steps={steps} currentPath={pathname} />
                     </div>
                   )}
+=======
+                  <div className="flex justify-between items-center mb-4">
+                    <StepsProgressWrapper steps={steps} />
+                  </div>
+>>>>>>> 5be51b15755886390dea7fa58fc33b2c23163eb5
                   {children}
                 </div>
               </main>
 
               <footer className="bg-gray-800 text-gray-300 py-4">
                 <div className="container mx-auto text-center">
-                  &copy; {new Date().getFullYear()} Emergency Assistance App.
-                  All rights reserved.
+                  &copy; {new Date().getFullYear()} Emergency Assistance App. All rights reserved.
                 </div>
               </footer>
 
@@ -77,20 +81,22 @@ export default function RootLayout({ children }) {
               />
 
               {scriptLoaded && (
-                <df-messenger
-                  project-id={process.env.NEXT_PUBLIC_PROJECT_ID}
-                  agent-id={process.env.NEXT_PUBLIC_AGENT_ID}
-                  language-code="en"
-                  chat-title="Emergency Assistant"
-                  style={{
-                    width: "100%",
-                    maxWidth: "400px",
-                    height: "500px",
-                    position: "fixed",
-                    bottom: "20px",
-                    right: "20px",
-                  }}
-                ></df-messenger>
+                <div className="hidden md:block">
+                  <df-messenger
+                    project-id={process.env.NEXT_PUBLIC_PROJECT_ID}
+                    agent-id={process.env.NEXT_PUBLIC_AGENT_ID}
+                    language-code="en"
+                    chat-title="Emergency Assistant"
+                    style={{
+                      width: "100%",
+                      maxWidth: "400px",
+                      height: "500px",
+                      position: "fixed",
+                      bottom: "20px",
+                      right: "20px",
+                    }}
+                  ></df-messenger>
+                </div>
               )}
             </NotificationProvider>
           </AuthProvider>

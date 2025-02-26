@@ -11,22 +11,16 @@ export function Header() {
   const handleNavigation = (path) => {
     router.push(path);
   };
-
-  // Add login handler
-  const handleLogin = async () => {
-    try {
-      await signInWithPopup(auth, provider);
-      router.push('/address'); // Redirect after successful login
-    } catch (error) {
-      console.error('Login error:', error);
-    }
+  const handleLoginNavigation = () => {
+    router.push('/');
   };
-
   return (
     <div className="navbar bg-gray-800">
+      {/* Toggle button inside nav bar*/}
       <div className="navbar-start">
         <div className="drawer z-[10000]">
           <input id="my-drawer" type="checkbox" className="drawer-toggle" />
+          {/* Toggle button outside nav bar */}
           <div className="drawer-content">
             <label htmlFor="my-drawer" className="btn btn-ghost text-white bg-sky-500">
               <svg
@@ -43,9 +37,33 @@ export function Header() {
               </svg>
             </label>
           </div>
+          {/* Nav bar */}
           <div className="drawer-side">
+            {/* Close nav bar if clicking outside */}
             <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
             <ul className="menu bg-gray-800 text-white min-h-full w-80 p-4">
+              <li>
+                <label htmlFor="my-drawer" className="btn btn-ghost text-white bg-sky-500">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 6h16M4 12h16M4 18h7" />
+                  </svg>
+                </label>
+              </li>
+              {/* Nav bar page buttons below the toggle */}
+              <li>
+                <button onClick={handleLoginNavigation}>
+                  Login
+                </button>
+              </li>
               <li>
                 <button onClick={() => handleNavigation('/address')}>
                   Address
@@ -116,14 +134,6 @@ export function Header() {
             </div>
           </div>
         </div>
-        {/* Add login button with marginLeft for spacing */}
-        <button 
-          onClick={handleLogin}
-          className="btn btn-ghost bg-sky-500 text-white ml-2"
-          aria-label="Login"
-        >
-          Login
-        </button>
       </div>
     </div>
   );

@@ -1,23 +1,24 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
-import { useAuth } from '@/context/AuthContext';
-import { firestoreService } from '@/firebase/services/firestore';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import { useAuth } from "@/context/AuthContext";
+import { firestoreService } from "@/firebase/services/firestore";
+import { useRouter } from "next/navigation";
 
 export default function AddressPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState("");
   const [location, setLocation] = useState(null);
 
   // Load Google Maps API
   const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
+    id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   });
 
+  // Initially set location using browser geolocation
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -26,26 +27,26 @@ export default function AddressPage() {
           setLocation({ lat: latitude, lng: longitude });
         },
         () => {
-          alert('Unable to retrieve your location');
+          alert("Unable to retrieve your location");
           // Fallback to College of Wooster if geolocation fails
           setLocation({ lat: 40.8117, lng: -81.9308 });
         }
       );
     } else {
-      alert('Geolocation is not supported by this browser.');
+      alert("Geolocation is not supported by this browser.");
       setLocation({ lat: 40.8117, lng: -81.9308 });
     }
   }, []);
 
   // Reverse geocode the current location to autofill address upon API first load
   useEffect(() => {
-    if (isLoaded && location && address === '') {
+    if (isLoaded && location && address === "") {
       const geocoder = new window.google.maps.Geocoder();
       geocoder.geocode({ location }, (results, status) => {
-        if (status === 'OK' && results[0]) {
+        if (status === "OK" && results[0]) {
           setAddress(results[0].formatted_address);
         } else {
-          alert('Geocode was not successful for the following reason: ' + status);
+          alert("Geocode was not successful for the following reason: " + status);
         }
       });
     }
@@ -59,11 +60,11 @@ export default function AddressPage() {
   const handleApply = () => {
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ address }, (results, status) => {
-      if (status === 'OK' && results[0]) {
+      if (status === "OK" && results[0]) {
         const { lat, lng } = results[0].geometry.location;
         setLocation({ lat: lat(), lng: lng() });
       } else {
-        alert('Geocode was not successful for the following reason: ' + status);
+        alert("Geocode was not successful for the following reason: " + status);
       }
     });
   };
@@ -77,46 +78,75 @@ export default function AddressPage() {
 
           const geocoder = new window.google.maps.Geocoder();
           geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
-            if (status === 'OK' && results[0]) {
+            if (status === "OK" && results[0]) {
               setAddress(results[0].formatted_address);
             } else {
-              alert('Geocode was not successful for the following reason: ' + status);
+              alert("Geocode was not successful for the following reason: " + status);
             }
           });
         },
         () => {
-          alert('Unable to retrieve your location');
+          alert("Unable to retrieve your location");
         }
       );
     } else {
-      alert('Geolocation is not supported by this browser.');
+      alert("Geolocation is not supported by this browser.");
     }
   };
 
+  // Update coordinates upon saving the address.
+  // Re-geocoding is done here so that if the user manually enters an address,
+  // its coordinates are used instead of the initial geolocation.
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
-      alert('You must be logged in to save address');
+      alert("You must be logged in to save address");
       return;
     }
 
+    // Re-geocode the inputted address to ensure coordinates match the entered address.
+    // If geocoding fails, fallback to College of Wooster coordinates.
+    let newLocation = location; // Fallback to current location if needed
+    const geocoder = new window.google.maps.Geocoder();
     try {
-      await firestoreService.setUser(user.uid, {
-        address: {
-          formatted: address,
-          coordinates: {
-            lat: location.lat,
-            lng: location.lng,
-          },
-          lastUpdated: new Date().toISOString(),
-        },
+      const geocodeResult = await new Promise((resolve) => {
+        geocoder.geocode({ address }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            const { lat, lng } = results[0].geometry.location;
+            resolve({ lat: lat(), lng: lng() });
+          } else {
+            // Fallback to College of Wooster coordinates
+            resolve({ lat: 40.8117, lng: -81.9308 });
+          }
+        });
       });
-
-      localStorage.setItem('address', address);
-
-      router.push('/preferences');
+      newLocation = geocodeResult;
+      // Update state so the map reflects the new location
+      setLocation(newLocation);
     } catch (error) {
-      alert('Error saving address: ' + error.message);
+      // In case of any unexpected error, fallback to College of Wooster coordinates.
+      alert("Unexpected geocoding error: " + error + ". Falling back to College of Wooster.");
+      newLocation = { lat: 40.8117, lng: -81.9308 };
+      setLocation(newLocation);
+    }
+
+    // Build data to store using the newly obtained coordinates (from the manual address)
+    const updatedUserData = {
+      uid: user.uid,
+      address: {
+        formatted: address,
+        coordinates: newLocation,
+        lastUpdated: new Date().toISOString(),
+      },
+    };
+
+    try {
+      await firestoreService.setUser(user.uid, updatedUserData);
+      localStorage.setItem("userData", JSON.stringify(updatedUserData));
+      localStorage.setItem("address", address);
+      router.push("/preferences");
+    } catch (error) {
+      alert("Error saving address: " + error.message);
     }
   };
 
@@ -131,19 +161,19 @@ export default function AddressPage() {
           value={address}
           onChange={handleAddressChange}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') handleApply();
+            if (e.key === "Enter") handleApply();
           }}
         />
         <button
           className="btn w-full mb-4"
-          style={{ backgroundColor: '#00A1F1', color: 'white' }}
+          style={{ backgroundColor: "#00A1F1", color: "white" }}
           onClick={handleUseCurrentLocation}
         >
           Use My Current Location
         </button>
         <button
           className="btn w-full"
-          style={{ backgroundColor: '#7CBB00', color: 'white' }}
+          style={{ backgroundColor: "#7CBB00", color: "white" }}
           onClick={handleSubmit}
         >
           Save & Continue
@@ -152,7 +182,7 @@ export default function AddressPage() {
       {isLoaded && location && (
         <div className="w-full md:w-1/2 h-96 md:h-full">
           <GoogleMap
-            mapContainerStyle={{ width: '100%', height: '100%' }}
+            mapContainerStyle={{ width: "100%", height: "100%" }}
             center={location}
             zoom={14}
           >

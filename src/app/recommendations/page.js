@@ -133,8 +133,8 @@ const RecommendationsPage = () => {
     return R * c;
   }
 
-  // Define a target location (e.g., Atlanta)
-  const thresholdDistanceKm = 50;
+  // Define a target location (user's location)
+  const thresholdDistanceKm = 50 * 1.60934; // Convert to miles
   useEffect(() => {
     const fetchLandsatData = async () => {
       try {
@@ -180,6 +180,7 @@ const RecommendationsPage = () => {
     color: "#fff",
     padding: "20px",
     overflowY: "auto",
+    WebkitOverflowScrolling: "touch",
     transition: "flex 0.3s ease",
     display: "flex",
     flexDirection: "column",
@@ -193,7 +194,7 @@ const RecommendationsPage = () => {
   };
 
   return (
-    <div style={containerStyle}>
+    <div className="flex flex-col md:flex-row min-h-screen w-screen overflow-auto">
       <div style={galleryStyle} className="bg-gray-800">
         <button
           onClick={toggleGallery}
