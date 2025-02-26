@@ -53,17 +53,11 @@ export default function RootLayout({ children }) {
 
               <main className="flex-grow bg-gray-800 text-gray-100 pb-12">
                 <div className="container mx-auto px-4 py-4 h-full">
-<<<<<<< HEAD
                   {pathname !== "/about" && ( // Hide steps progress on about page
                     <div className="flex justify-between items-center mb-4">
                       <StepsProgress steps={steps} currentPath={pathname} />
                     </div>
                   )}
-=======
-                  <div className="flex justify-between items-center mb-4">
-                    <StepsProgressWrapper steps={steps} />
-                  </div>
->>>>>>> 5be51b15755886390dea7fa58fc33b2c23163eb5
                   {children}
                 </div>
               </main>
