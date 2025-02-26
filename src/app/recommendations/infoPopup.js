@@ -51,6 +51,8 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
       .catch((error) => {
         console.error("Error fetching safe route:", error);
       });
+    // Close the popup on click
+    onClose();
   };
 
   return (
