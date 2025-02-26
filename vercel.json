@@ -1,8 +1,7 @@
 {
   "functions": {
-    "pages/api/*": {
+    "pages/api/recommend-places": {
       "maxDuration": 60
     }
   }
 }
-
