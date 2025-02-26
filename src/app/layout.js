@@ -1,3 +1,4 @@
+// layout.js
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,13 +6,12 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { NotificationProvider } from "@/context/NotificationContext";
 import Script from "next/script";
-import { usePathname } from "next/navigation";
 import AlertNotifier from "@/components/AlertNotifier";
 import { Header } from "@/components/ui/Header";
 import { Roboto } from "next/font/google";
-import StepsProgress from "@/components/ui/StepsProgress";
+import StepsProgressWrapper from "@/components/StepsProgressWrapper";
 import { Provider } from "react-redux";
-import { store } from "@/redux/store"; // ✅ Correct Redux store import
+import { store } from "@/redux/store";
 
 const roboto = Roboto({
   weight: ["400", "500", "700"],
@@ -19,7 +19,6 @@ const roboto = Roboto({
 });
 
 export default function RootLayout({ children }) {
-  const pathname = usePathname();
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const steps = [
     { name: "Login", path: "/" },
@@ -55,7 +54,7 @@ export default function RootLayout({ children }) {
               <main className="flex-grow bg-gray-800 text-gray-100 pb-12">
                 <div className="container mx-auto px-4 py-4 h-full">
                   <div className="flex justify-between items-center mb-4">
-                    <StepsProgress steps={steps} currentPath={pathname} />
+                    <StepsProgressWrapper steps={steps} />
                   </div>
                   {children}
                 </div>
@@ -63,8 +62,7 @@ export default function RootLayout({ children }) {
 
               <footer className="bg-gray-800 text-gray-300 py-4">
                 <div className="container mx-auto text-center">
-                  &copy; {new Date().getFullYear()} Emergency Assistance App.
-                  All rights reserved.
+                  &copy; {new Date().getFullYear()} Emergency Assistance App. All rights reserved.
                 </div>
               </footer>
 

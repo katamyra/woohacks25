@@ -86,20 +86,20 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [selectedDestinationCoord]);
 
-  // Get the current user location using the Geolocation API.
+  // Fetch the manually set user location from localStorage (instead of using geolocation API)
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCurrentUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => console.error("Error retrieving user location:", error)
-      );
+    const storedUserData = localStorage.getItem("userData");
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData);
+      if (parsedData.address && parsedData.address.coordinates) {
+        setCurrentUserLocation(parsedData.address.coordinates);
+      } else {
+        console.error("No address coordinates found in stored userData. Using default location.");
+        setCurrentUserLocation({ lat: 40.8117, lng: -81.9308 });
+      }
     } else {
-      console.error("Geolocation not supported by this browser.");
+      console.error("No userData in localStorage. Using default location.");
+      setCurrentUserLocation({ lat: 40.8117, lng: -81.9308 });
     }
   }, []);
 
@@ -129,7 +129,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [map]);
 
-  // Centers the map based on landsat data OR the current user location TODO
+  // Centers the map based on landsat data OR the current user location
   const center = useMemo(() => {
     if (landsatData && landsatData.length > 0) {
       let sumLat = 0, sumLng = 0;
@@ -145,7 +145,7 @@ export default function MapOverlay({ landsatData, recommendations }) {
     }
   }, [landsatData, currentUserLocation]);
 
-  // Fit the map bounds to the landsat data points TODO
+  // Fit the map bounds to the landsat data points
   useEffect(() => {
     if (map && landsatData && landsatData.length > 0 && window.google) {
       const bounds = new window.google.maps.LatLngBounds();
@@ -408,8 +408,8 @@ export default function MapOverlay({ landsatData, recommendations }) {
             recommendations.map((place, idx) => {
               const lat = place.geometry.location.lat;
               const lng = place.geometry.location.lng;
-              console.log("Amenity latitude:", lat)
-              console.log("Amenity longitude:", lng)
+              console.log("Amenity latitude:", lat);
+              console.log("Amenity longitude:", lng);
               return (
                 <Marker
                   key={`amenity-${idx}`}

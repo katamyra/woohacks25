@@ -133,8 +133,8 @@ const RecommendationsPage = () => {
     return R * c;
   }
 
-  // Define a target location (e.g., Atlanta)
-  const thresholdDistanceKm = 50;
+  // Define a target location (user's location)
+  const thresholdDistanceKm = 50 * 1.60934; // Convert to miles
   useEffect(() => {
     const fetchLandsatData = async () => {
       try {
