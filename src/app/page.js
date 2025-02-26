@@ -90,7 +90,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden">
       {/* Login card */}
       <div className="w-full md:w-1/2 flex items-start justify-center px-4 pt-4">
         {!user ? (

@@ -1,6 +1,8 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useNotification } from '@/context/NotificationContext';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, provider } from '../../firebase/config';
 
 export function Header() {
   const router = useRouter();
@@ -8,6 +10,16 @@ export function Header() {
 
   const handleNavigation = (path) => {
     router.push(path);
+  };
+
+  // Add login handler
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+      router.push('/address'); // Redirect after successful login
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   };
 
   return (
@@ -59,7 +71,7 @@ export function Header() {
         </div>
       </div>
       <div className="navbar-center">
-        <button onClick={() => handleNavigation('/')} className="btn btn-ghost text-xl text-gray-100">Emergency Assistant</button>
+        <button onClick={() => handleNavigation('/')} className="btn btn-ghost text-xl text-gray-100">BuzzLine</button>
       </div>
       <div className="navbar-end">
         <div className="dropdown dropdown-end">
@@ -99,7 +111,15 @@ export function Header() {
             </div>
           </div>
         </div>
+        {/* Add login button with marginLeft for spacing */}
+        <button 
+          onClick={handleLogin}
+          className="btn btn-ghost bg-sky-500 text-white ml-2"
+          aria-label="Login"
+        >
+          Login
+        </button>
       </div>
     </div>
   );
-} 
+}

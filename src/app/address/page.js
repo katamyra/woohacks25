@@ -121,8 +121,8 @@ export default function AddressPage() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-79.65">
-      <div className="w-1/2 p-4 bg-gray-800 text-white shadow-lg">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-79.65">
+      <div className="w-full md:w-1/2 p-4 bg-gray-800 text-white shadow-lg">
         <h2 className="text-2xl bg-gray-800 font-bold mb-4">Enter Address</h2>
         <input
           type="text"
@@ -150,9 +150,9 @@ export default function AddressPage() {
         </button>
       </div>
       {isLoaded && location && (
-        <div className="w-1/2 h-full">
+        <div className="w-full md:w-1/2 h-96 md:h-full">
           <GoogleMap
-            mapContainerStyle={{ width: '100%', height: '80%' }}
+            mapContainerStyle={{ width: '100%', height: '100%' }}
             center={location}
             zoom={14}
           >
