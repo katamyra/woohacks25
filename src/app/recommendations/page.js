@@ -180,6 +180,7 @@ const RecommendationsPage = () => {
     color: "#fff",
     padding: "20px",
     overflowY: "auto",
+    WebkitOverflowScrolling: "touch",
     transition: "flex 0.3s ease",
     display: "flex",
     flexDirection: "column",
@@ -193,7 +194,7 @@ const RecommendationsPage = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen w-screen">
+    <div className="flex flex-col md:flex-row min-h-screen w-screen overflow-auto">
       <div style={galleryStyle} className="bg-gray-800">
         <button
           onClick={toggleGallery}
