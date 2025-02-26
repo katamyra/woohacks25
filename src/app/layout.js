@@ -1,4 +1,3 @@
-// layout.js
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,6 +9,7 @@ import AlertNotifier from "@/components/AlertNotifier";
 import { Header } from "@/components/ui/Header";
 import { Roboto } from "next/font/google";
 import StepsProgressWrapper from "@/components/StepsProgressWrapper";
+import { usePathname } from "next/navigation";
 import { Provider } from "react-redux";
 import { store } from "@/redux/store";
 
@@ -20,6 +20,7 @@ const roboto = Roboto({
 
 export default function RootLayout({ children }) {
   const [scriptLoaded, setScriptLoaded] = useState(false);
+  const pathname = usePathname();
   const steps = [
     { name: "Login", path: "/" },
     { name: "Address", path: "/address" },
@@ -53,9 +54,10 @@ export default function RootLayout({ children }) {
 
               <main className="flex-grow bg-gray-800 text-gray-100 pb-12">
                 <div className="container mx-auto px-4 py-4 h-full">
-                  {pathname !== "/about" && ( // Hide steps progress on about page
+                  {pathname !== "/about" && (
+                    // Hide steps progress on about page
                     <div className="flex justify-between items-center mb-4">
-                      <StepsProgress steps={steps} currentPath={pathname} />
+                      <StepsProgressWrapper steps={steps} currentPath={pathname} />
                     </div>
                   )}
                   {children}
