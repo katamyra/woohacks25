@@ -354,7 +354,7 @@ const Gallery = ({
     : { display: "flex", flexDirection: "column", gap: "10px" };
 
   return (
-    <div className="gallery h-[68vh] overflow-y-auto p-4" onClick={handleGalleryClick}>
+    <div className="gallery overflow-y-auto p-4 bg-black" onClick={handleGalleryClick}>
       <div
         style={{
           display: "flex",
