@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import InfoCard from "./infoCard";
 import SortDropdown from "./sortDropdown";
 import FilterDropdown from "./infoFilterDropdown";
@@ -217,13 +217,16 @@ const Gallery = ({
 
   const [walkabilityData, setWalkabilityData] = useState(null);
   const [etaMap, setEtaMap] = useState({});
+  const [etasFetched, setEtasFetched] = useState(false);
 
   // Fetch walkability data (CSV and GeoJSON) and merge PEI scores
   useEffect(() => {
     const fetchWalkabilityData = async () => {
       try {
-        const scoreMap = await fetchCsvAndParse(csvUrl);
-        const geoRes = await fetch(geoJsonUrl);
+        const [scoreMap, geoRes] = await Promise.all([
+          fetchCsvAndParse(csvUrl),
+          fetch(geoJsonUrl),
+        ]);
         if (!geoRes.ok) {
           throw new Error(`GeoJSON fetch failed: ${geoRes.status}`);
         }
@@ -237,35 +240,35 @@ const Gallery = ({
     fetchWalkabilityData();
   }, []);
 
-  // Fetch real ETA values for each recommendation using fetchSafeRouteORS
-  // Fetch real ETA values for each recommendation using fetchSafeRouteORS.
-useEffect(() => {
-  async function fetchEtas() {
+  // Function to fetch ETAs only once on user click
+  const fetchEtas = useCallback(async () => {
     const firePolygonsCollection = localStorage.getItem("firePolygonsCollection");
-    console.log("Retrieved firePolygonsCollection from localStorage:", firePolygonsCollection);
-    const newEtaMap = {};
-    for (const rec of recommendations) {
-      try {
-        const routeData = await fetchSafeRouteORS(
-          userLocation,
-          { lat: rec.geometry.location.lat, lng: rec.geometry.location.lng },
-          firePolygonsCollection
-        );
-        console.log(`Route data for ${rec.place_id}:`, routeData);
-        // Store only ETA
-        newEtaMap[rec.place_id] = routeData.eta;
-      } catch (error) {
-        console.error(`Error fetching ETA for ${rec.place_id}:`, error);
-        newEtaMap[rec.place_id] = 0;
-      }
-    }
-    setEtaMap(newEtaMap);
-  }
-  if (recommendations.length > 0) {
-    fetchEtas();
-  }
-}, [recommendations, userLocation]);
+    const newEtaMap = await Promise.all(
+      recommendations.map(async (rec) => {
+        try {
+          const routeData = await fetchSafeRouteORS(
+            userLocation,
+            { lat: rec.geometry.location.lat, lng: rec.geometry.location.lng },
+            firePolygonsCollection
+          );
+          return { placeId: rec.place_id, eta: routeData.eta };
+        } catch (error) {
+          console.error(`Error fetching ETA for ${rec.place_id}:`, error);
+          return { placeId: rec.place_id, eta: 0 };
+        }
+      })
+    ).then(results => Object.fromEntries(results.map(({ placeId, eta }) => [placeId, eta])));
 
+    setEtaMap(newEtaMap);
+  }, [recommendations, userLocation]);
+
+  // Handler for gallery click that triggers fetching ETAs once.
+  const handleGalleryClick = () => {
+    if (!etasFetched) {
+      fetchEtas();
+      setEtasFetched(true);
+    }
+  };
 
   // Simplify enhanced recommendations
   const enhancedRecommendations = useMemo(() => {
@@ -273,11 +276,7 @@ useEffect(() => {
       ...rec,
       dummyETA: etaMap[rec.place_id] || 0,
       walkability: walkabilityData
-        ? Number(
-            getWalkabilityScoreForRecommendation(rec, walkabilityData).toFixed(
-              2
-            )
-          )
+        ? Number(getWalkabilityScoreForRecommendation(rec, walkabilityData).toFixed(2))
         : null,
     }));
   }, [recommendations, walkabilityData, etaMap]);
@@ -353,7 +352,7 @@ useEffect(() => {
     : { display: "flex", flexDirection: "column", gap: "10px" };
 
   return (
-    <div className="gallery h-[68vh] overflow-y-auto p-4">
+    <div className="gallery h-[68vh] overflow-y-auto p-4" onClick={handleGalleryClick}>
       <div
         style={{
           display: "flex",
@@ -433,11 +432,12 @@ useEffect(() => {
               {filter}
               <span
                 style={{ marginLeft: "5px", cursor: "pointer" }}
-                onClick={() =>
+                onClick={(e) => {
+                  e.stopPropagation();
                   setSelectedFilters(
                     selectedFilters.filter((f) => f !== filter)
-                  )
-                }
+                  );
+                }}
               >
                 &#x2715;
               </span>

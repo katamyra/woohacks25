@@ -25,6 +25,8 @@ const RecommendationsPage = () => {
   const { user, loading } = useAuth();
   const [geminiExplanations, setGeminiExplanations] = useState({});
   const [destination, setDestinationState] = useState(null);
+  const [targetLat, setTargetLat] = useState(33.7756);
+  const [targetLng, setTargetLng] = useState(-84.3963);
   
   const dispatch = useDispatch();
 
@@ -40,6 +42,22 @@ const RecommendationsPage = () => {
       setDestinationState(null);
     }
   };
+
+  // set the target location according to the user's address
+  useEffect(() => {
+    const storedData = localStorage.getItem("userData");
+    if (storedData) {
+      try {
+        const userData = JSON.parse(storedData);
+        if (userData?.address?.coordinates) {
+          setTargetLat(userData.address.coordinates.lat);
+          setTargetLng(userData.address.coordinates.lng);
+        }
+      } catch (error) {
+        console.error("Error parsing userData from localStorage:", error);
+      }
+    }
+  }, []); 
 
   // Fetch user data from Firestore
   useEffect(() => {
@@ -116,8 +134,6 @@ const RecommendationsPage = () => {
   }
 
   // Define a target location (e.g., Atlanta)
-  const targetLat = 33.7490;
-  const targetLng = -84.3880;
   const thresholdDistanceKm = 50;
   useEffect(() => {
     const fetchLandsatData = async () => {
@@ -146,7 +162,7 @@ const RecommendationsPage = () => {
     };
 
     fetchLandsatData();
-  }, []);
+  }, [targetLat, targetLng]);
 
   const toggleGallery = () => setGalleryExpanded(!galleryExpanded);
 
