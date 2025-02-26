@@ -177,7 +177,7 @@ const RecommendationsPage = () => {
   };
 
   return (
-    <div style={containerStyle}>
+    <div className="flex flex-col md:flex-row h-screen w-screen">
       <div style={galleryStyle} className="bg-gray-800">
         <button
           onClick={toggleGallery}
