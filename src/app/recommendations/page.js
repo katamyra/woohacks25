@@ -18,8 +18,9 @@ const RecommendationsPage = () => {
   const [galleryExpanded, setGalleryExpanded] = useState(false);
   const [review, setReview] = useState("");
   const [address, setAddress] = useState("");
-  const [lng, setLng] = useState(0);
-  const [lat, setLat] = useState(0);
+  // Initialize as null
+  const [lng, setLng] = useState(null);
+  const [lat, setLat] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
   const [landsatData, setLandsatData] = useState([]);
   const { user, loading } = useAuth();
@@ -48,7 +49,7 @@ const RecommendationsPage = () => {
         try {
           const userData = await firestoreService.getUserData(user.uid);
           console.log("User Data:", userData);
-          localStorage.setItem("userData", JSON.stringify(userData)); // most updated userData stored in localStorage
+          localStorage.setItem("userData", JSON.stringify(userData)); // Store most updated userData in localStorage
           setReview(userData.review);
           setAddress(userData.address.formatted);
           setLng(userData.address.coordinates.lng);
@@ -61,10 +62,10 @@ const RecommendationsPage = () => {
     fetchUserData();
   }, [user]);
 
-  // Fetch amenity recommendations
+  // Fetch amenity recommendations once all inputs are available
   useEffect(() => {
     const fetchInitialRecommendations = async () => {
-      if (review && address && lng && lat) {
+      if (review && address && lat !== null && lng !== null) {
         try {
           const data = await fetchRecommendations(review, { address, lng, lat });
           setRecommendations(data);
@@ -74,7 +75,7 @@ const RecommendationsPage = () => {
       }
     };
     fetchInitialRecommendations();
-  }, [review, address, lng, lat]);
+  }, [review, address, lat, lng]);
 
   // Fetch Gemini AI amenity explanations
   useEffect(() => {
@@ -98,6 +99,7 @@ const RecommendationsPage = () => {
     fetchExplanations();
   }, [recommendations, review]);
 
+  // Helper functions for distance calculation
   function deg2rad(deg) {
     return deg * (Math.PI / 180);
   }
@@ -115,11 +117,11 @@ const RecommendationsPage = () => {
     return R * c;
   }
 
-  // Use user's input address coordinates for filtering which fires to render
-  const thresholdDistanceKm = 50 * 1.609344; //KM to miles
+  // Filter Landsat data to include only fires within 50 miles of the input address
+  const thresholdDistanceKm = 50 * 1.609344; // KM to miles
   useEffect(() => {
-    // Only fetch Landsat data if the user coordinates are available
-    if (!lat || !lng) return;
+    // Only fetch if valid coords are available
+    if (lat === null || lng === null) return;
     const fetchLandsatData = async () => {
       try {
         const response = await axios.get("/api/landsat"); // NASA Landsat API route
