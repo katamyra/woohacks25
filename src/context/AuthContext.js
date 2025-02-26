@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import { authService } from '@/firebase/services/auth';
+import { createContext, useContext, useEffect, useState } from "react";
+import { authService } from "@/firebase/services/auth";
 
 const AuthContext = createContext();
 
@@ -25,4 +25,4 @@ export function AuthProvider({ children }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext); 
+export const useAuth = () => useContext(AuthContext);

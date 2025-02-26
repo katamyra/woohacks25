@@ -3,7 +3,9 @@ import { createSlice } from '@reduxjs/toolkit';
 const routesSlice = createSlice({
   name: 'routes',
   initialState: {
+
     currentRoute: null,
+    
   },
   reducers: {
     setCurrentRoute: (state, action) => {
@@ -11,6 +13,7 @@ const routesSlice = createSlice({
     },
     clearRoute: (state) => {
       state.currentRoute = null;
+
     },
   },
 });

@@ -1,10 +1,12 @@
-import { generateContent } from '../../services/gemini.js'; // adjust the path as needed
-import { extractUrls, sendMultipleRequests } from '../../utils/extractPlacesQueriesUrls.js';
-import axios from 'axios';
+import { generateContent } from "../../services/gemini.js"; // adjust the path as needed
+import {
+  extractUrls,
+  sendMultipleRequests,
+} from "../../utils/extractPlacesQueriesUrls.js";
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   const { review } = req.body;

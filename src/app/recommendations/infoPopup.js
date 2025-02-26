@@ -1,9 +1,9 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
-import { useAuth } from '@/context/AuthContext';
-import { useSelector, useDispatch } from 'react-redux';
-import { addCoordinate, resetCoordinates } from '../features/coordinates/coordinatesSlice';
-import { setDestination } from '../features/destination/destinationSlice';
+import { useAuth } from "@/context/AuthContext";
+import { useSelector, useDispatch } from "react-redux";
+import { setDestination } from "../features/destination/destinationSlice";
 const InfoPopup = ({ place, geminiExplanation, onClose }) => {
   const { user, loading } = useAuth();
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
@@ -11,7 +11,7 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
   const [routeInfo, setRouteInfo] = useState(null);
   const lat = place.geometry.location.lat;
   const lng = place.geometry.location.lng;
-  const destinationCoord = {lat, lng};
+  const destinationCoord = { lat, lng };
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -21,7 +21,7 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
           const userData = await firestoreService.getUserData(user.uid);
           console.log("userLocation", userLocation);
         } catch (error) {
-          console.error('Error fetching user data:', error);
+          console.error("Error fetching user data:", error);
         }
       }
     };
@@ -37,15 +37,20 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
     dispatch(setDestination(destinationCoord));
     localStorage.setItem("destinationCoord", JSON.stringify(destinationCoord));
     const firePolygonsCollection = localStorage.getItem("avoidPolygons");
-    fetchSafeRouteORS(userLocation, destinationCoord, firePolygonsCollection, userLocation)
-      .then(result => {
+    fetchSafeRouteORS(
+      userLocation,
+      destinationCoord,
+      firePolygonsCollection,
+      userLocation
+    )
+      .then((result) => {
         setRouteInfo(result);
       })
-      .catch(error => {
-        console.error('Error fetching safe route:', error);
+      .catch((error) => {
+        console.error("Error fetching safe route:", error);
       });
   };
-  
+
   return (
     <div
       className="modal-overlay"
@@ -107,7 +112,13 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
           />
         )}
 
-        <h2 style={{ textAlign: "center", marginBottom: "10px", fontSize: "20px" }}>
+        <h2
+          style={{
+            textAlign: "center",
+            marginBottom: "10px",
+            fontSize: "20px",
+          }}
+        >
           {place.name}
         </h2>
         <p style={{ fontSize: "14px", marginBottom: "8px" }}>
@@ -122,16 +133,22 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
           {place.price_level ? "$".repeat(place.price_level) : "N/A"}
         </p>
         <p style={{ fontSize: "14px", marginBottom: "16px" }}>
-          <strong>Description:</strong> This is a detailed description of the place.
-          It might include additional information provided by Gemini AI.
+          <strong>Description:</strong> This is a detailed description of the
+          place. It might include additional information provided by Gemini AI.
         </p>
 
         <div
-          style={{ display: "flex", alignItems: "center", position: "relative" }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            position: "relative",
+          }}
           onMouseEnter={() => setShowInfoTooltip(true)}
           onMouseLeave={() => setShowInfoTooltip(false)}
         >
-          <span style={{ cursor: "help", fontSize: "20px", marginRight: "8px" }}>
+          <span
+            style={{ cursor: "help", fontSize: "20px", marginRight: "8px" }}
+          >
             ℹ️
           </span>
           <span style={{ fontSize: "16px", fontWeight: "bold" }}>
