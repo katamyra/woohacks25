@@ -152,7 +152,7 @@ const RecommendationsPage = () => {
 
   return (
     <div className="flex flex-col md:flex-row w-screen h-screen m-0 p-0">
-      <div className={`flex-1 md:flex-[0.3] bg-gray-800 text-white p-5 overflow-y-auto transition-flex duration-300 flex flex-col`}>
+      <div className={`flex-1 ${galleryExpanded ? "w-full" : "md:flex-[0.3]"} h-[94vh] bg-black text-white p-4 overflow-y-auto transition-all duration-300 flex flex-col`}>
         <button
           onClick={toggleGallery}
           className="mb-2 bg-gray-600 text-white border-none py-2 px-4"
@@ -167,12 +167,12 @@ const RecommendationsPage = () => {
           geminiExplanations={geminiExplanations}
           user={user}
           galleryExpanded={galleryExpanded}
-          onSetDestination={updateDestination}  // Pass helper function
+          onSetDestination={updateDestination}
         />
       </div>
 
       {!galleryExpanded && (
-        <div className="flex-1 md:flex-[0.7] transition-flex duration-300 flex flex-col">
+        <div className="flex-1 md:flex-[0.7] transition-all duration-300 flex flex-col">
           <MapOverlayNoSSR
             landsatData={landsatData}
             recommendations={recommendations}

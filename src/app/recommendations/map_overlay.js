@@ -378,7 +378,7 @@ export default function MapOverlay({ landsatData, recommendations, onSetDestinat
           onLoad={onMapLoad}
           center={center}
           zoom={17.2}
-          mapContainerStyle={{ width: "97.4%", height: "80%" }}
+          mapContainerStyle={{ width: "96.9%", height: "93.96%" }}
         >
           {/* Render markers for Landsat fires */}
           {landsatData &&
