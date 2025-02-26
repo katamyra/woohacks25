@@ -97,10 +97,10 @@ export default function Preferences() {
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto p-4">
-        <h1 className="text-4xl text-center mb-8 text-white">Emergency Assistance Preferences</h1>
-
+    <div className="container mx-auto p-4 flex flex-col h-screen">
+      <h1 className="text-4xl text-center mb-8">Your Preferences</h1>
+      
+      <div className="flex-1 overflow-y-auto pb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Basic Needs Card */}
           <div className="card bg-gray-900/50 shadow-xl">

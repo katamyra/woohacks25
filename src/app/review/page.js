@@ -117,54 +117,56 @@ export default function Review() {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 flex flex-col h-screen">
       <h1 className="text-4xl text-center mb-8">Your AI Review</h1>
       
-      <div className="grid gap-6">
-        {isGenerating ? (
-          <div className="text-center">
-            <div className="loading loading-spinner loading-lg"></div>
-            <p className="mt-4">Generating your personalized review...</p>
-          </div>
-        ) : error ? (
-          <div className="text-red-500 text-center">{error}</div>
-        ) : !userData?.preferences ? (
-          <div className="text-center text-gray-400">
-            No preferences found. Please complete your preferences first.
-          </div>
-        ) : (
-          <>
-            <div className="card bg-gray-800/50 shadow-xl">
-              <div className="card-body">
-                <h2 className="card-title mb-4">AI Review</h2>
-                <div className="prose prose-invert">
-                  <pre className="whitespace-pre-wrap">{aiReview}</pre>
+      <div className="flex-1 overflow-y-auto pb-4">
+        <div className="grid gap-6">
+          {isGenerating ? (
+            <div className="text-center">
+              <div className="loading loading-spinner loading-lg"></div>
+              <p className="mt-4">Generating your personalized review...</p>
+            </div>
+          ) : error ? (
+            <div className="text-red-500 text-center">{error}</div>
+          ) : !userData?.preferences ? (
+            <div className="text-center text-gray-400">
+              No preferences found. Please complete your preferences first.
+            </div>
+          ) : (
+            <>
+              <div className="card bg-gray-800/50 shadow-xl">
+                <div className="card-body">
+                  <h2 className="card-title mb-4">AI Review</h2>
+                  <div className="prose prose-invert">
+                    <pre className="whitespace-pre-wrap">{aiReview}</pre>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="card bg-gray-800/50 shadow-xl">
-              <div className="card-body">
-                <h2 className="card-title mb-4">Additional Information</h2>
-                <textarea
-                  className="textarea textarea-bordered w-full h-32 bg-gray-700 text-white"
-                  placeholder="Add any additional information you'd like to include in your review..."
-                  value={additionalInfo}
-                  onChange={handleAdditionalInfoChange}
-                />
-                <div className="flex justify-start mt-4">
-                  <button 
-                    className="btn btn-primary"
-                    onClick={handleSaveReview}
-                    disabled={isSubmitting || !aiReview}
-                  >
-                    {isSubmitting ? 'Saving...' : 'Save & Continue'}
-                  </button>
+              <div className="card bg-gray-800/50 shadow-xl">
+                <div className="card-body">
+                  <h2 className="card-title mb-4">Additional Information</h2>
+                  <textarea
+                    className="textarea textarea-bordered w-full h-32 bg-gray-700 text-white"
+                    placeholder="Add any additional information you'd like to include in your review..."
+                    value={additionalInfo}
+                    onChange={handleAdditionalInfoChange}
+                  />
+                  <div className="flex justify-start mt-4">
+                    <button 
+                      className="btn btn-primary"
+                      onClick={handleSaveReview}
+                      disabled={isSubmitting || !aiReview}
+                    >
+                      {isSubmitting ? 'Saving...' : 'Save & Continue'}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
