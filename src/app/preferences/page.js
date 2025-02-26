@@ -99,7 +99,7 @@ export default function Preferences() {
     <div className="container mx-auto p-4 flex flex-col h-screen">
       <h1 className="text-4xl text-center mb-8">Your Preferences</h1>
       
-      <div className="flex-1 overflow-y-auto pb-16">
+      <div className="flex-1 overflow-y-auto pb-32">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Basic Needs Card */}
           <div className="card bg-gray-900/50 shadow-xl">
@@ -199,6 +199,7 @@ export default function Preferences() {
         </div>
 
         <div className="flex justify-center mt-8">
+          {errorMessage && <div className="text-red-500 mt-4">{errorMessage}</div>}
           <button 
             className="btn btn-primary px-8 py-3 text-lg"
             onClick={handleSubmit}
@@ -206,7 +207,6 @@ export default function Preferences() {
           >
             {isSubmitting ? 'Saving...' : 'Next'}
           </button>
-          {errorMessage && <div className="text-red-500 mt-4">{errorMessage}</div>}
         </div>
 
         {/* ChatInterface removed (now rendered globally) */}
