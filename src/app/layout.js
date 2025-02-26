@@ -40,7 +40,7 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en" className={roboto.className}>
-      <body className="flex flex-col h-screen overflow-hidden">
+      <body className="flex flex-col h-screen">
         <Provider store={store}>
           <AuthProvider>
             <NotificationProvider>
@@ -54,9 +54,11 @@ export default function RootLayout({ children }) {
 
               <main className="flex-grow bg-gray-800 text-gray-100 pb-12">
                 <div className="container mx-auto px-4 py-4 h-full">
-                  <div className="flex justify-between items-center mb-4">
-                    <StepsProgress steps={steps} currentPath={pathname} />
-                  </div>
+                  {pathname !== "/about" && ( // Hide steps progress on about page
+                    <div className="flex justify-between items-center mb-4">
+                      <StepsProgress steps={steps} currentPath={pathname} />
+                    </div>
+                  )}
                   {children}
                 </div>
               </main>

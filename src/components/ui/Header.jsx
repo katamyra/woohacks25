@@ -66,6 +66,11 @@ export function Header() {
                   Recommendations
                 </button>
               </li>
+              <li>
+                <button onClick={() => handleNavigation('/about')}>
+                  About
+                </button>
+              </li>
             </ul>
           </div>
         </div>
