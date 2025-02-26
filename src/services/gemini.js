@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Initialize the Gemini API with your API key
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
@@ -28,4 +28,4 @@ export const generateChatContent = async (messages) => {
     console.error("Error generating chat content:", error);
     throw error;
   }
-}; 
+};

@@ -9,7 +9,10 @@ import axios from "axios";
 
 // Import Redux hooks and destination actions
 import { useDispatch } from "react-redux";
-import { setDestination, clearDestination } from "../features/destination/destinationSlice";
+import {
+  setDestination,
+  clearDestination,
+} from "../features/destination/destinationSlice";
 
 // Import map overlay with SSR disabled
 const MapOverlayNoSSR = dynamic(() => import("./map_overlay"), { ssr: false });
@@ -25,7 +28,7 @@ const RecommendationsPage = () => {
   const { user, loading } = useAuth();
   const [geminiExplanations, setGeminiExplanations] = useState({});
   const [destination, setDestinationState] = useState(null);
-  
+
   const dispatch = useDispatch();
 
   // Helper function: update both localStorage and Redux state
@@ -61,12 +64,20 @@ const RecommendationsPage = () => {
     fetchUserData();
   }, [user]);
 
+  useEffect(() => {
+    console.log("USER LOCATION", { lat, lng });
+  }, [lat, lng]);
+
   // Fetch amenity recommendations
   useEffect(() => {
     const fetchInitialRecommendations = async () => {
       if (review && address && lng && lat) {
         try {
-          const data = await fetchRecommendations(review, { address, lng, lat });
+          const data = await fetchRecommendations(review, {
+            address,
+            lng,
+            lat,
+          });
           setRecommendations(data);
         } catch (error) {
           console.error("Error fetching recommendations:", error);
@@ -149,7 +160,12 @@ const RecommendationsPage = () => {
         }));
 
         const filteredData = data.filter((item) => {
-          const distance = getDistanceFromLatLonInKm(item.lat, item.lng, lat, lng);
+          const distance = getDistanceFromLatLonInKm(
+            item.lat,
+            item.lng,
+            lat,
+            lng
+          );
           return distance < thresholdDistanceKm;
         });
 
@@ -167,7 +183,11 @@ const RecommendationsPage = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-screen m-0 p-0 overflow-x-hidden">
-      <div className={`flex-1 ${galleryExpanded ? "w-full" : "md:flex-[0.3]"} h-[95vh] bg-black text-white p-4 overflow-y-auto transition-all duration-300 flex flex-col`}>
+      <div
+        className={`flex-1 ${
+          galleryExpanded ? "w-full" : "md:flex-[0.3]"
+        } h-[95vh] bg-black text-white p-4 overflow-y-auto transition-all duration-300 flex flex-col`}
+      >
         <button
           onClick={toggleGallery}
           className="mb-2 bg-gray-600 text-white border-none py-2 px-4"

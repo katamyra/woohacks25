@@ -40,3 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 
 next-env.d.ts
+
+# vs code history
+# Ignore VSCode Local History
+.history/
