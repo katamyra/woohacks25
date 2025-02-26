@@ -3,7 +3,9 @@ import React, { useState, useEffect } from "react";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { useAuth } from "@/context/AuthContext";
 import { useSelector, useDispatch } from "react-redux";
+import { firestoreService } from "../../firebase/services/firestore";
 import { setDestination } from "../features/destination/destinationSlice";
+
 const InfoPopup = ({ place, geminiExplanation, onClose }) => {
   const { user, loading } = useAuth();
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);

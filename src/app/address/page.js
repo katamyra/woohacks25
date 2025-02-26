@@ -112,6 +112,8 @@ export default function AddressPage() {
         },
       });
 
+      localStorage.setItem('address', address);
+
       router.push('/preferences');
     } catch (error) {
       alert('Error saving address: ' + error.message);

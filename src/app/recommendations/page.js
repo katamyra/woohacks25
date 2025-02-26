@@ -48,6 +48,7 @@ const RecommendationsPage = () => {
         try {
           const userData = await firestoreService.getUserData(user.uid);
           console.log("User Data:", userData);
+          localStorage.setItem("userData", JSON.stringify(userData)); // most updated userData stored in localStorage
           setReview(userData.review);
           setAddress(userData.address.formatted);
           setLng(userData.address.coordinates.lng);
