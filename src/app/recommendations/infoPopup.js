@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from "react";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { useAuth } from "@/context/AuthContext";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { firestoreService } from "../../firebase/services/firestore";
 import { setDestination } from "../features/destination/destinationSlice";
 
 const InfoPopup = ({ place, geminiExplanation, onClose }) => {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [routeInfo, setRouteInfo] = useState(null);
@@ -15,6 +15,15 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
   const lng = place.geometry.location.lng;
   const destinationCoord = { lat, lng };
   const dispatch = useDispatch();
+
+  // Helper to get open/closed status
+  const getLocationStatus = (place) => {
+    if (place.opening_hours && typeof place.opening_hours.open_now === "boolean") {
+      return place.opening_hours.open_now ? "Open" : "Closed";
+    } else {
+      return "Unknown";
+    }
+  };
 
   // Fetch user location from Firestore
   useEffect(() => {
@@ -40,10 +49,6 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
     };
     fetchUserData();
   }, [user]);
-
-  useEffect(() => {
-    console.log("Route Info", routeInfo);
-  }, [routeInfo]);
 
   // Function to handle setting the safe route
   const handleSetSafeRoute = () => {
@@ -140,12 +145,13 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
           <strong>Address:</strong> {place.vicinity}
         </p>
         <p style={{ fontSize: "14px", marginBottom: "8px" }}>
-          <strong>Rating:</strong> {place.rating ? place.rating : "N/A"} / 5 (
-          {place.user_ratings_total} reviews)
+          <strong>Rating:</strong> {place.rating ? place.rating : "N/A"} / 5 ({place.user_ratings_total} reviews)
         </p>
         <p style={{ fontSize: "14px", marginBottom: "8px" }}>
-          <strong>Price Level:</strong>{" "}
-          {place.price_level ? "$".repeat(place.price_level) : "N/A"}
+          <strong>Price Level:</strong> {place.price_level ? "$".repeat(place.price_level) : "N/A"}
+        </p>
+        <p style={{ fontSize: "14px", marginBottom: "8px" }}>
+          <strong>Status:</strong> {getLocationStatus(place)}
         </p>
 
         <div
@@ -157,9 +163,7 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
           onMouseEnter={() => setShowInfoTooltip(true)}
           onMouseLeave={() => setShowInfoTooltip(false)}
         >
-          <span
-            style={{ cursor: "help", fontSize: "20px", marginRight: "8px" }}
-          >
+          <span style={{ cursor: "help", fontSize: "20px", marginRight: "8px" }}>
             ℹ️
           </span>
           <span style={{ fontSize: "16px", fontWeight: "bold" }}>
