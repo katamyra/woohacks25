@@ -25,8 +25,6 @@ const RecommendationsPage = () => {
   const { user, loading } = useAuth();
   const [geminiExplanations, setGeminiExplanations] = useState({});
   const [destination, setDestinationState] = useState(null);
-  const [targetLat, setTargetLat] = useState(33.7756);
-  const [targetLng, setTargetLng] = useState(-84.3963);
   
   const dispatch = useDispatch();
 
@@ -42,22 +40,6 @@ const RecommendationsPage = () => {
       setDestinationState(null);
     }
   };
-
-  // set the target location according to the user's address
-  useEffect(() => {
-    const storedData = localStorage.getItem("userData");
-    if (storedData) {
-      try {
-        const userData = JSON.parse(storedData);
-        if (userData?.address?.coordinates) {
-          setTargetLat(userData.address.coordinates.lat);
-          setTargetLng(userData.address.coordinates.lng);
-        }
-      } catch (error) {
-        console.error("Error parsing userData from localStorage:", error);
-      }
-    }
-  }, []); 
 
   // Fetch user data from Firestore
   useEffect(() => {
@@ -133,8 +115,10 @@ const RecommendationsPage = () => {
     return R * c;
   }
 
-  // Define a target location (user's location)
-  const thresholdDistanceKm = 50 * 1.60934; // Convert to miles
+  // Define a target location (e.g., Atlanta)
+  const targetLat = 33.7490;
+  const targetLng = -84.3880;
+  const thresholdDistanceKm = 50;
   useEffect(() => {
     const fetchLandsatData = async () => {
       try {
@@ -162,54 +146,21 @@ const RecommendationsPage = () => {
     };
 
     fetchLandsatData();
-  }, [targetLat, targetLng]);
+  }, []);
 
   const toggleGallery = () => setGalleryExpanded(!galleryExpanded);
 
-  const containerStyle = {
-    display: "flex",
-    height: "100vh",
-    width: "100vw",
-    margin: 0,
-    padding: 0,
-  };
-
-  const galleryStyle = {
-    flex: galleryExpanded ? 1 : 0.3,
-    backgroundColor: "#000",
-    color: "#fff",
-    padding: "20px",
-    overflowY: "auto",
-    WebkitOverflowScrolling: "touch",
-    transition: "flex 0.3s ease",
-    display: "flex",
-    flexDirection: "column",
-  };
-
-  const mapStyle = {
-    flex: 0.7,
-    transition: "flex 0.3s ease",
-    display: "flex",
-    flexDirection: "column",
-  };
-
   return (
-    <div className="flex flex-col md:flex-row min-h-screen w-screen overflow-auto">
-      <div style={galleryStyle} className="bg-gray-800">
+    <div className="flex flex-col md:flex-row w-screen h-screen m-0 p-0">
+      <div className={`flex-1 md:flex-[0.3] bg-gray-800 text-white p-5 overflow-y-auto transition-flex duration-300 flex flex-col`}>
         <button
           onClick={toggleGallery}
-          style={{
-            marginBottom: "10px",
-            backgroundColor: "#444",
-            color: "#fff",
-            border: "none",
-            padding: "10px",
-          }}
+          className="mb-2 bg-gray-600 text-white border-none py-2 px-4"
         >
           {galleryExpanded ? "Collapse Gallery" : "Expand Gallery"}
         </button>
 
-        <h2>Recommended Locations</h2>
+        <h2 className="text-xl mb-4">Recommended Locations</h2>
         <Gallery
           recommendations={recommendations}
           userLocation={{ lat, lng }}
@@ -221,7 +172,7 @@ const RecommendationsPage = () => {
       </div>
 
       {!galleryExpanded && (
-        <div style={mapStyle}>
+        <div className="flex-1 md:flex-[0.7] transition-flex duration-300 flex flex-col">
           {/* Use the dynamically imported MapOverlay with SSR disabled */}
           <MapOverlayNoSSR
             landsatData={landsatData}
