@@ -18,8 +18,22 @@ export default function AddressPage() {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   });
 
-  // Initially set location using browser geolocation
+  // On mount, check if userData is saved in local storage
   useEffect(() => {
+    const savedData = localStorage.getItem("userData");
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        if (parsedData.address && parsedData.address.coordinates) { //Saved data exists
+          setLocation(parsedData.address.coordinates);
+          setAddress(parsedData.address.formatted);
+          return;
+        }
+      } catch (error) {
+        console.error("Error parsing userData from localStorage:", error);
+      }
+    }
+    // No saved data -> use live location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -38,7 +52,7 @@ export default function AddressPage() {
     }
   }, []);
 
-  // Reverse geocode the current location to autofill address upon API first load
+  // Reverse geocode the current location to autofill address (if address is empty)
   useEffect(() => {
     if (isLoaded && location && address === "") {
       const geocoder = new window.google.maps.Geocoder();
@@ -56,7 +70,7 @@ export default function AddressPage() {
     setAddress(event.target.value);
   };
 
-  // Trigger geocoding when the user presses Enter and enters the address
+  // Trigger Geocoding
   const handleApply = () => {
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ address }, (results, status) => {
@@ -94,9 +108,7 @@ export default function AddressPage() {
     }
   };
 
-  // Update coordinates upon saving the address.
-  // Re-geocoding is done here so that if the user manually enters an address,
-  // its coordinates are used instead of the initial geolocation.
+  // Update coordinates when saving the input
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
@@ -104,9 +116,7 @@ export default function AddressPage() {
       return;
     }
 
-    // Re-geocode the inputted address to ensure coordinates match the entered address.
-    // If geocoding fails, fallback to College of Wooster coordinates.
-    let newLocation = location; // Fallback to current location if needed
+    let newLocation = location; // Fallback to current location
     const geocoder = new window.google.maps.Geocoder();
     try {
       const geocodeResult = await new Promise((resolve) => {
@@ -115,22 +125,20 @@ export default function AddressPage() {
             const { lat, lng } = results[0].geometry.location;
             resolve({ lat: lat(), lng: lng() });
           } else {
-            // Fallback to College of Wooster coordinates
+            // Second fallback to College of Wooster coords
             resolve({ lat: 40.8117, lng: -81.9308 });
           }
         });
       });
       newLocation = geocodeResult;
-      // Update state so the map reflects the new location
       setLocation(newLocation);
     } catch (error) {
-      // In case of any unexpected error, fallback to College of Wooster coordinates.
       alert("Unexpected geocoding error: " + error + ". Falling back to College of Wooster.");
       newLocation = { lat: 40.8117, lng: -81.9308 };
       setLocation(newLocation);
     }
 
-    // Build data to store using the newly obtained coordinates (from the manual address)
+    // Build data to store
     const updatedUserData = {
       uid: user.uid,
       address: {
