@@ -25,7 +25,10 @@ import InfoPopup from "./infoPopup";
 // Helper function for comparing coordinates
 function areCoordinatesEqual(coord1, coord2) {
   if (!coord1 || !coord2) return false;
-  return Number(coord1.lat) === Number(coord2.lat) && Number(coord1.lng) === Number(coord2.lng);
+  return (
+    Number(coord1.lat) === Number(coord2.lat) &&
+    Number(coord1.lng) === Number(coord2.lng)
+  );
 }
 
 // Helper function to decide colors for block group polygons based on PEI score
@@ -45,7 +48,12 @@ function getColor(value) {
   return "#8B0000";
 }
 
-export default function MapOverlay({ landsatData, recommendations, onSetDestination, geminiExplanations }) {
+export default function MapOverlay({
+  landsatData,
+  recommendations,
+  onSetDestination,
+  geminiExplanations,
+}) {
   if (typeof window === "undefined") {
     return null;
   }
@@ -82,7 +90,12 @@ export default function MapOverlay({ landsatData, recommendations, onSetDestinat
   // Reset the auto‑zoom/center flag when destination coords change
   useEffect(() => {
     if (selectedDestinationCoord) {
-      if (!areCoordinatesEqual(selectedDestinationCoord, prevDestinationRef.current)) {
+      if (
+        !areCoordinatesEqual(
+          selectedDestinationCoord,
+          prevDestinationRef.current
+        )
+      ) {
         hasAutoZoomed.current = false;
         prevDestinationRef.current = selectedDestinationCoord;
       }
@@ -97,7 +110,9 @@ export default function MapOverlay({ landsatData, recommendations, onSetDestinat
       if (parsedData.address && parsedData.address.coordinates) {
         setCurrentUserLocation(parsedData.address.coordinates);
       } else {
-        console.error("No address coordinates found in stored userData. Using default location.");
+        console.error(
+          "No address coordinates found in stored userData. Using default location."
+        );
         setCurrentUserLocation({ lat: 40.8117, lng: -81.9308 });
       }
     } else {
@@ -126,7 +141,9 @@ export default function MapOverlay({ landsatData, recommendations, onSetDestinat
     if (map && window.google) {
       map.data.addListener("mouseover", (e) => {
         const score = e.feature.getProperty("PEI_score");
-        setHoverScore(score !== undefined && score !== null ? parseFloat(score) : null);
+        setHoverScore(
+          score !== undefined && score !== null ? parseFloat(score) : null
+        );
       });
       map.data.addListener("mouseout", () => setHoverScore(null));
     }
@@ -135,12 +152,16 @@ export default function MapOverlay({ landsatData, recommendations, onSetDestinat
   // Centers the map based on landsat data OR the current user location
   const center = useMemo(() => {
     if (landsatData && landsatData.length > 0) {
-      let sumLat = 0, sumLng = 0;
+      let sumLat = 0,
+        sumLng = 0;
       landsatData.forEach((point) => {
         sumLat += parseFloat(point.lat);
         sumLng += parseFloat(point.lng);
       });
-      return { lat: sumLat / landsatData.length, lng: sumLng / landsatData.length };
+      return {
+        lat: sumLat / landsatData.length,
+        lng: sumLng / landsatData.length,
+      };
     } else if (currentUserLocation) {
       return currentUserLocation;
     } else {
@@ -153,7 +174,12 @@ export default function MapOverlay({ landsatData, recommendations, onSetDestinat
     if (map && landsatData && landsatData.length > 0 && window.google) {
       const bounds = new window.google.maps.LatLngBounds();
       landsatData.forEach((point) => {
-        bounds.extend(new window.google.maps.LatLng(parseFloat(point.lat), parseFloat(point.lng)));
+        bounds.extend(
+          new window.google.maps.LatLng(
+            parseFloat(point.lat),
+            parseFloat(point.lng)
+          )
+        );
       });
       map.fitBounds(bounds);
     }
@@ -169,10 +195,13 @@ export default function MapOverlay({ landsatData, recommendations, onSetDestinat
   }, [landsatData]);
 
   // Construct GEOJSON from fire polygon
-  const avoidPolygons = useMemo(() => ({
-    type: "MultiPolygon",
-    coordinates: firePolygons,
-  }), [firePolygons]);
+  const avoidPolygons = useMemo(
+    () => ({
+      type: "MultiPolygon",
+      coordinates: firePolygons,
+    }),
+    [firePolygons]
+  );
 
   // Store avoidPolygons in localStorage
   useEffect(() => {
@@ -184,10 +213,25 @@ export default function MapOverlay({ landsatData, recommendations, onSetDestinat
   // Auto‑zoom and center the map (runs once per new destination)
   const autoZoomAndCenter = useCallback(() => {
     if (hasAutoZoomed.current) return;
-    if (map && currentUserLocation && selectedDestinationCoord && window.google) {
+    if (
+      map &&
+      currentUserLocation &&
+      selectedDestinationCoord &&
+      window.google
+    ) {
       const bounds = new window.google.maps.LatLngBounds();
-      bounds.extend(new window.google.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng));
-      bounds.extend(new window.google.maps.LatLng(selectedDestinationCoord.lat, selectedDestinationCoord.lng));
+      bounds.extend(
+        new window.google.maps.LatLng(
+          currentUserLocation.lat,
+          currentUserLocation.lng
+        )
+      );
+      bounds.extend(
+        new window.google.maps.LatLng(
+          selectedDestinationCoord.lat,
+          selectedDestinationCoord.lng
+        )
+      );
       map.fitBounds(bounds);
       hasAutoZoomed.current = true;
     }
@@ -204,11 +248,23 @@ export default function MapOverlay({ landsatData, recommendations, onSetDestinat
     ) {
       const getSafeRoute = async () => {
         try {
+          console.log("🚀 Starting safe route calculation...");
+          console.log("📍 From:", currentUserLocation);
+          console.log("🎯 To:", selectedDestinationCoord);
+          console.log("🔥 Fire polygons:", firePolygons?.length || 0);
+
           const routeData = await fetchSafeRouteORS(
             currentUserLocation,
             selectedDestinationCoord,
-            firePolygons // passing firePolygons collection if needed
+            firePolygons
           );
+
+          console.log("✅ Route calculated successfully:", {
+            distance: routeData?.distance,
+            duration: routeData?.duration,
+            points: routeData?.geometry?.length || 0,
+          });
+
           setRouteInfo(routeData);
           if (routeData.geometry) {
             const pathCoordinates = decodeORSGeometry(routeData.geometry);
@@ -216,7 +272,10 @@ export default function MapOverlay({ landsatData, recommendations, onSetDestinat
               type: "Feature",
               geometry: {
                 type: "LineString",
-                coordinates: pathCoordinates.map((coord) => [coord.lng, coord.lat]),
+                coordinates: pathCoordinates.map((coord) => [
+                  coord.lng,
+                  coord.lat,
+                ]),
               },
               properties: {},
             };
@@ -232,17 +291,32 @@ export default function MapOverlay({ landsatData, recommendations, onSetDestinat
             autoZoomAndCenter();
           }
         } catch (error) {
-          console.error("Error fetching safe route from ORS:", error.response?.data || error);
+          console.error("❌ Safe route calculation failed:", {
+            error: error.message,
+            details: error.response?.data,
+            coordinates: {
+              from: currentUserLocation,
+              to: selectedDestinationCoord,
+            },
+          });
         }
       };
       getSafeRoute();
     }
-  }, [selectedDestinationCoord, map, currentUserLocation, autoZoomAndCenter, firePolygons]);
+  }, [
+    selectedDestinationCoord,
+    map,
+    currentUserLocation,
+    autoZoomAndCenter,
+    firePolygons,
+  ]);
 
   // Clear the route from the data layer when no destination is selected
   useEffect(() => {
     if (!selectedDestinationCoord && routeDataLayerRef.current) {
-      routeDataLayerRef.current.forEach((feature) => routeDataLayerRef.current.remove(feature));
+      routeDataLayerRef.current.forEach((feature) =>
+        routeDataLayerRef.current.remove(feature)
+      );
     }
   }, [selectedDestinationCoord]);
 
@@ -255,12 +329,15 @@ export default function MapOverlay({ landsatData, recommendations, onSetDestinat
       return;
     }
     try {
-      const csvUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.csv?cachebust=1";
-      const geoJsonUrl = "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.geojson?cachebust=1";
+      const csvUrl =
+        "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.csv?cachebust=1";
+      const geoJsonUrl =
+        "https://storage.googleapis.com/woohack25/atlanta_blockgroup_PEI_2022.geojson?cachebust=1";
 
       const fetchCsvAndParse = async (url) => {
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`CSV fetch failed: ${response.status}`);
+        if (!response.ok)
+          throw new Error(`CSV fetch failed: ${response.status}`);
         const text = await response.text();
         const lines = text.split(/\r?\n/);
         if (lines.length === 0) return {};
