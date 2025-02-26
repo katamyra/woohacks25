@@ -1,8 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useNotification } from '@/context/NotificationContext';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, provider } from '../../firebase/config';  // Changed from '../../config/firebase'
 
 export function Header() {
   const router = useRouter();
@@ -12,14 +10,9 @@ export function Header() {
     router.push(path);
   };
 
-  // Add login handler
-  const handleLogin = async () => {
-    try {
-      await signInWithPopup(auth, provider);
-      router.push('/address'); // Redirect after successful login
-    } catch (error) {
-      console.error('Login error:', error);
-    }
+  // Navigate back to login page
+  const handleLoginNavigation = () => {
+    router.push('/');
   };
 
   return (
@@ -46,6 +39,12 @@ export function Header() {
           <div className="drawer-side">
             <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
             <ul className="menu bg-gray-800 text-white min-h-full w-80 p-4">
+              {/* Login navigation button added as the first item */}
+              <li>
+                <button onClick={handleLoginNavigation}>
+                  Login
+                </button>
+              </li>
               <li>
                 <button onClick={() => handleNavigation('/address')}>
                   Address
@@ -71,11 +70,13 @@ export function Header() {
         </div>
       </div>
       <div className="navbar-center">
-        <button onClick={() => handleNavigation('/')} className="btn btn-ghost text-xl text-gray-100">BuzzLine</button>
+        <button onClick={() => handleNavigation('/')} className="btn btn-ghost text-xl text-gray-100">
+          BuzzLine
+        </button>
       </div>
       <div className="navbar-end">
         <div className="dropdown dropdown-end">
-          <label tabIndex={0} role="button" className="btn btn-ghost  bg-sky-500 text-white">
+          <label tabIndex={0} role="button" className="btn btn-ghost bg-sky-500 text-white">
             <div className="indicator">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -111,15 +112,7 @@ export function Header() {
             </div>
           </div>
         </div>
-        {/* Add login button with marginLeft for spacing */}
-        <button 
-          onClick={handleLogin}
-          className="btn btn-ghost bg-sky-500 text-white ml-2"
-          aria-label="Login"
-        >
-          Login
-        </button>
       </div>
     </div>
   );
-} 
+}
