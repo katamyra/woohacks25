@@ -1,115 +1,140 @@
 {
     "projectInfo": {
-        "name": "BuzzLine",
-        "description": "A Next.js-based platform designed to support users during emergencies (e.g., fire hazards) by providing targeted recommendations, safe travel routes, and real-time mapping overlays for walkabilities.",
-        "github": "https://github.com/katamyra/woohacks25",
-        "pictures": [
-            "https://i.ibb.co/W4zZ3yt8/tmp.webp"
-        ],
-        "tags": {
-            "front-end": [
-                {
-                    "name": "Next.js",
-                    "icon": "https://icon.icepanel.io/Technology/png-shadow-512/Next.js.png"
-                },
-                {
-                    "name": "React",
-                    "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUvW3WuWuXD4JU4PsQ0FI3B28e_RE_fVaSyg&s"
-                },
-                {
-                    "name": "Tailwind CSS",
-                    "icon": "https://w7.pngwing.com/pngs/293/485/png-transparent-tailwind-css-hd-logo-thumbnail.png"
-                },
-                {
-                    "name": "DaisyUI",
-                    "icon": "https://raw.githubusercontent.com/saadeghi/daisyui-images/master/images/daisyui-logo/favicon-192.png"
-                }
-            ],
-            "back-end": [
-                {
-                    "name": "Next.js",
-                    "icon": "https://icon.icepanel.io/Technology/png-shadow-512/Next.js.png"
-                }
-            ],
-            "api": [
-                {
-                    "name": "Google Generative AI (Gemini)",
-                    "icon": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg"
-                },
-                {
-                    "name": "Google Maps API",
-                    "icon": "https://img.icons8.com/?size=100&id=DcygmpZqBEd9&format=png&color=000000"
-                },
-                {
-                    "name": "Google Places API",
-                    "icon": "https://img.icons8.com/?size=100&id=DcygmpZqBEd9&format=png&color=000000"
-                },
-                {
-                    "name": "Google Directions API",
-                    "icon": "https://img.icons8.com/?size=100&id=DcygmpZqBEd9&format=png&color=000000"
-                },
-                {
-                    "name": "Google Dialogflow",
-                    "icon": "https://e7.pngegg.com/pngimages/72/731/png-clipart-dialogflow-chatbot-conversation-google-natural-language-processing-google-angle-rectangle.png"
-                }
-            ],
-            "data-and-auth": [
-                {
-                    "name": "Firebase",
-                    "icon": "https://img.icons8.com/?size=100&id=87330&format=png&color=000000"
-                },
-                {
-                    "name": "Firestore",
-                    "icon": "https://img.icons8.com/?size=100&id=SQEEoDcpUD6c&format=png&color=000000"
-                },
-                {
-                    "name": "Google OAuth",
-                    "icon": "https://www.citypng.com/public/uploads/preview/google-logo-icon-gsuite-hd-701751694791470gzbayltphh.png"
-                }
-            ],
-            "external-data-sources": [
-                {
-                    "name": "NASA Landsat API",
-                    "icon": "https://img.icons8.com/?size=100&id=63673&format=png&color=000000"
-                },
-                {
-                    "name": "ORS API",
-                    "icon": "https://pbs.twimg.com/profile_images/952551296506134528/u0DkjfzD_400x400.jpg"
-                }
-            ],
-            "utilities": [
-                {
-                    "name": "Turf.js",
-                    "icon": "https://images.opencollective.com/turf/2579a53/logo/256.png?height=256"
-                },
-                {
-                    "name": "Axios",
-                    "icon": "https://cdn.worldvectorlogo.com/logos/axios.svg"
-                }
-            ]
+      "name": "BuzzLine",
+      "description": "A Next.js-based platform designed to support users during emergencies (e.g., fire hazards) by providing targeted recommendations, safe travel routes, and real-time mapping overlays for walkabilities.",
+      "github": "https://github.com/katamyra/woohacks25",
+      "pictures": [
+        {
+            "src": "/data/day_0.jpg",
+            "title": "Day 0 - 7:51PM",
+            "caption": "And so the idea behind BuzzLine was born in the GaTech library..."
         },
-        "team": {
-            "members": [
-                {
-                    "name": "Jewook Park",
-                    "school": "Georgia Institute of Technology",
-                    "major": "BS in Computer Science",
-                    "linkedin": "https://www.linkedin.com/in/jewookpark/"
-                },
-                {
-                    "name": "Krish Katariya",
-                    "school": "Georgia Institute of Technology",
-                    "major": "BS in Computer Science",
-                    "linkedin": "https://www.linkedin.com/in/krishkatariya/"
-                },
-                {
-                    "name": "Matthew Lim",
-                    "school": "Georgia Institute of Technology",
-                    "major": "BS in Computer Science",
-                    "linkedin": "https://www.linkedin.com/in/matthewxlim/"
-                }
-            ],
-            "team_picture": "https://storage.googleapis.com/woohack25/buzzline_team.webp"
+        {
+            "src": "/data/day_1-1.jpg",
+            "title": "Day 1 - 6:27PM",
+            "caption": "T-minus 3 until START !!."
+        },
+        {
+            "src": "/data/day_1-2.jpg",
+            "title": "Day 2 - 4:35AM",
+            "caption": "Heading home for a good night's rest!."
+        },
+        {
+            "src": "/data/day-2.jpg",
+            "title": "Day 2 - 5:35PM",
+            "caption": "Comfy work session (with no heater)."
+        },
+        {
+            "src": "/data/day-3.jpg",
+            "title": "Day 3",
+            "caption": "Celebrating accomplishment the best way - with a home-cooked meal."
         }
+        ],
+      "tags": {
+        "front-end": [
+          {
+            "name": "Next.js",
+            "icon": "https://icon.icepanel.io/Technology/png-shadow-512/Next.js.png"
+          },
+          {
+            "name": "React",
+            "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUvW3WuWuXD4JU4PsQ0FI3B28e_RE_fVaSyg&s"
+          },
+          {
+            "name": "Tailwind CSS",
+            "icon": "https://w7.pngwing.com/pngs/293/485/png-transparent-tailwind-css-hd-logo-thumbnail.png"
+          },
+          {
+            "name": "DaisyUI",
+            "icon": "https://raw.githubusercontent.com/saadeghi/daisyui-images/master/images/daisyui-logo/favicon-192.png"
+          }
+        ],
+        "back-end": [
+          {
+            "name": "Next.js",
+            "icon": "https://icon.icepanel.io/Technology/png-shadow-512/Next.js.png"
+          }
+        ],
+        "api": [
+          {
+            "name": "Google Generative AI (Gemini)",
+            "icon": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg"
+          },
+          {
+            "name": "Google Maps API",
+            "icon": "https://img.icons8.com/?size=100&id=DcygmpZqBEd9&format=png&color=000000"
+          },
+          {
+            "name": "Google Places API",
+            "icon": "https://img.icons8.com/?size=100&id=DcygmpZqBEd9&format=png&color=000000"
+          },
+          {
+            "name": "Google Directions API",
+            "icon": "https://img.icons8.com/?size=100&id=DcygmpZqBEd9&format=png&color=000000"
+          },
+          {
+            "name": "Google Dialogflow",
+            "icon": "https://e7.pngegg.com/pngimages/72/731/png-clipart-dialogflow-chatbot-conversation-google-natural-language-processing-google-angle-rectangle.png"
+          }
+        ],
+        "data-and-auth": [
+          {
+            "name": "Firebase",
+            "icon": "https://img.icons8.com/?size=100&id=87330&format=png&color=000000"
+          },
+          {
+            "name": "Firestore",
+            "icon": "https://img.icons8.com/?size=100&id=SQEEoDcpUD6c&format=png&color=000000"
+          },
+          {
+            "name": "Google OAuth",
+            "icon": "https://www.citypng.com/public/uploads/preview/google-logo-icon-gsuite-hd-701751694791470gzbayltphh.png"
+          }
+        ],
+        "external-data-sources": [
+          {
+            "name": "NASA Landsat API",
+            "icon": "https://img.icons8.com/?size=100&id=63673&format=png&color=000000"
+          },
+          {
+            "name": "ORS API",
+            "icon": "https://pbs.twimg.com/profile_images/952551296506134528/u0DkjfzD_400x400.jpg"
+          }
+        ],
+        "utilities": [
+          {
+            "name": "Turf.js",
+            "icon": "https://images.opencollective.com/turf/2579a53/logo/256.png?height=256"
+          },
+          {
+            "name": "Axios",
+            "icon": "https://cdn.worldvectorlogo.com/logos/axios.svg"
+          }
+        ]
+      },
+      "team": {
+        "members": [
+          {
+            "name": "Jewook Park",
+            "school": "Georgia Institute of Technology",
+            "major": "BS in Computer Science",
+            "linkedin": "https://www.linkedin.com/in/jewookpark/"
+          },
+          {
+            "name": "Krish Katariya",
+            "school": "Georgia Institute of Technology",
+            "major": "BS in Computer Science",
+            "linkedin": "https://www.linkedin.com/in/krishkatariya/"
+          },
+          {
+            "name": "Matthew Lim",
+            "school": "Georgia Institute of Technology",
+            "major": "BS in Computer Science",
+            "linkedin": "https://www.linkedin.com/in/matthewxlim/"
+          }
+        ],
+        "team_picture": "https://storage.googleapis.com/woohack25/buzzline_team.webp"
+      }
     }
-}
+  }
+  

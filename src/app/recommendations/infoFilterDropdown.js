@@ -9,7 +9,7 @@ const FilterDropdown = ({
   setSelectedFilters,
 }) => {
   const toggleFilter = (option) => {
-    // If already selected, remove it.
+    // If already selected, remove it
     if (selectedFilters.includes(option)) {
       setSelectedFilters(selectedFilters.filter((f) => f !== option));
     } else {

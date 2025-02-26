@@ -141,7 +141,7 @@ export default function Home() {
       {/* Image */}
       <div className="w-full md:w-1/2 flex items-start justify-center pt-4">
         <Image
-          src="/map.webp"
+          src="/project_map.webp"
           alt="map"
           width={2000}
           height={1500}
