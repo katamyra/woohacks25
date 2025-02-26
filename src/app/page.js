@@ -11,10 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-const handleSubmit = (e) => {
-  e.preventDefault();
-  setTestResult("Login button clicked");
-};
 
 export default function Home() {
   const router = useRouter();
@@ -57,7 +53,7 @@ export default function Home() {
   }, [countdown, redirecting, router]);
 
   useEffect(() => {
-    document.title = "Login - Survive";
+    document.title = "Login";
   }, []);
 
   const handleGoogleSignIn = async () => {
@@ -98,44 +94,10 @@ export default function Home() {
           <Card className="w-full max-w-md p-8 bg-card shadow-lg rounded-lg">
             <CardHeader>
               <h1 className="text-2xl font-bold text-center mb-4">
-                Sign in to Survive
+                Sign in to Buzzline 
               </h1>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label
-                    htmlFor="username"
-                    className="block text-sm font-medium text-muted-foreground"
-                  >
-                    Username
-                  </Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    placeholder="Enter your username"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-muted-foreground"
-                  >
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="********"
-                    className="mt-1"
-                  />
-                </div>
-                <Button type="submit" variant="default" className="w-full mt-4">
-                  Login
-                </Button>
-              </form>
-              <Separator className="my-4" />
               <Button
                 onClick={handleGoogleSignIn}
                 variant="outline"
