@@ -132,10 +132,6 @@ const InfoPopup = ({ place, geminiExplanation, onClose }) => {
           <strong>Price Level:</strong>{" "}
           {place.price_level ? "$".repeat(place.price_level) : "N/A"}
         </p>
-        <p style={{ fontSize: "14px", marginBottom: "16px" }}>
-          <strong>Description:</strong> This is a detailed description of the
-          place. It might include additional information provided by Gemini AI.
-        </p>
 
         <div
           style={{
