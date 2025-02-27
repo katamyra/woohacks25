@@ -70,7 +70,6 @@ export default function AddressPage() {
     setAddress(event.target.value);
   };
 
-  // Trigger Geocoding
   const handleApply = () => {
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ address }, (results, status) => {
