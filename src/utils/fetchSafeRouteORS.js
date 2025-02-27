@@ -8,7 +8,7 @@ function getORSProfile(mode) {
       return 'foot-walking';
     case 'driving':
       return 'driving-car';
-    case 'biking':
+    case 'bicycle':
       return 'cycling-regular';
     default:
       throw new Error('Unsupported transportation mode');
