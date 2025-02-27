@@ -41,7 +41,7 @@ export default function Review() {
     setError('');
 
     try {
-      const prompt = `Based on the following user preferences, provide a brief review of their conditions:
+      const prompt = `Based on the following user preferences, provide a brief review of their conditions. The review should name all of the components of user data. The last line of the review should briefly state the categories of places you recommend they go, such as hospitals, restaurants, lodging, and civic buildings. State that you will recommend all types, but a little more of certain categories based on their needs. Keep this very concise! The user information is:
         - Transportation: ${preferences.transportation}
         - Fitness Level: ${preferences.fitnessLevel}
         - Max Distance: ${preferences.maxDistance} miles
