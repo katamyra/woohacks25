@@ -79,48 +79,49 @@ This project is built using Next.js and modern React tools. It assists users aff
 /src
   /app
     /recommendations
-      - map_overlay.js         // Renders Google Map overlays with fire polygons and custom markers.
-      - gallery.js             // Gallery view for displaying recommended amenities with filtering/sorting.
-      - page.js                // Recommendations page that ties together user data, maps, and galleries.
-    /preferences               // Page to manage and update user emergency assistance preferences.
-    /review                    // Page to generate and display user reviews based on their input.
-    layout.js                 // Root layout wrapping the app with context providers (Auth & Notification).
-    layout-server.js          // Server layout containing metadata (title, description).
-    page.js                   // Main landing/login page with Firebase authentication.
+      - map_overlay.js         // Renders Google Map overlays with fire polygons and custom markers
+      - gallery.js             // Gallery view for displaying recommended amenities with filtering/sorting
+      - CustomMarker.js        // Custom marker component for Google Maps with tooltip detailing marker info
+      - page.js                // Recommendations page that ties together user data, maps, and galleries
+    /preferences               // Page to manage and update user emergency assistance preferences
+    /review                    // Page to generate and display user reviews based on their input
+    layout.js                 // Root layout wrapping the app with context providers (Auth & Notification)
+    layout-server.js          // Server layout containing metadata (title, description)
+    page.js                   // Main landing/login page with Firebase authentication
   /components
     /ui
-      - button.jsx             // Reusable button component with configurable style and size.
-    - Notifications.jsx       // Component to show global notifications.
+      - button.jsx             // Reusable button component with configurable style and size
+    - Notifications.jsx       // Component to show global notifications
     - (Other UI components such as InfoCard, SortDropdown, FilterDropdown are used in gallery)
   /context
-    - AuthContext.js          // Manages and provides authentication state (user, loading).
-    - NotificationContext.jsx // Global notification provider with add/clear functions.
+    - AuthContext.js          // Manages and provides authentication state (user, loading)
+    - NotificationContext.jsx // Global notification provider with add/clear functions
   /firebase
-    - config.js               // Initializes Firebase using environment variables; exports db and auth.
+    - config.js               // Initializes Firebase using environment variables; exports db and auth
     /services
-      - firestore.js          // Provides Firestore functions (add, get, update user data, test connection).
-      - auth.js               // Exposes authentication services (e.g., signInWithGoogle, signOut).
+      - firestore.js          // Firestore functions: add, get, update user data
+      - auth.js               // Authentication services (e.g., signInWithGoogle, signOut)
   /pages
     /api
-      - landsat.js            // API endpoint fetching and converting Landsat CSV data from NASA to JSON.
-      - generate-explanations.js // Uses Gemini to generate concise explanations for recommended places.
-      - recommend-places.js   // Generates Google Maps Places API query URLs and retrieves recommendation data.
+      - landsat.js            // API endpoint fetching and converting Landsat CSV data from NASA to JSON
+      - generate-explanations.js // Uses Gemini to generate explanations for recommended places
+      - recommend-places.js   // Generates Google Maps Places API query URLs and retrieves recommendation data
   /services
-    - gemini.js               // Interacts with Google's Gemini API to generate content and chat responses.
-    - dialogflow.js           // Initializes Dialogflow SessionsClient for chatbot integration.
+    - gemini.js               // Interacts with Google's Gemini API for content and chat responses
+    - dialogflow.js           // Initializes Dialogflow SessionsClient for chatbot integration
   /utils
-    - fetchRecommendations.js // Generates a detailed prompt and fetches recommendations; sorts amenities.
-    - fetchSafeRouteORS.js    // Calls the ORS API to compute safe routes while avoiding fire polygons.
-    - fetchRouteInfo.js       // Retrieves detailed route information from Google Maps Directions API.
-    - extractPlacesQueriesUrls.js // Extracts URLs from Gemini's output and sends GET requests to the Places API.
-    - decodeORSGeometry.js    // Decodes ORS LineString geometry data into map-friendly latitude/longitude coordinates.
+    - fetchRecommendations.js // Takes user input to generate a detailed prompt and fetch recommendations
+    - fetchSafeRouteORS.js    // Computes safe routes via the OpenRouteService API by avoiding hazards
+    - fetchRouteInfo.js       // Retrieves detailed route information from Google Maps Directions API
+    - extractPlacesQueriesUrls.js // Extracts URLs from Gemini output and requests data from Google Places API
+    - decodeORSGeometry.js    // Decodes ORS LineString geometry into map-friendly latitude/longitude coordinates
   /lib
-    - utils.js                // Helper function to merge CSS class names using clsx and tailwind-merge.
-/jsconfig.json                 // Configures path aliases for easier module imports.
-/.gitignore                    // Specifies files to ignore in version control.
-/LICENSE                      // MIT License file.
-/package.json                 // Project metadata, scripts, and dependencies.
-/next.config.mjs              // Next.js configuration (headers, experimental options, webpack fallbacks).
+    - utils.js                // Utility functions such as merging CSS class names using clsx and tailwind-merge
+/jsconfig.json                 // Configures path aliases for easier module imports
+/.gitignore                    // Specifies files to ignore in version control
+/LICENSE                      // MIT License file
+/package.json                 // Project metadata, scripts, and dependencies
+/next.config.mjs              // Next.js configuration (headers, experimental options, webpack fallbacks)
 ```
 
 ---
