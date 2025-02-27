@@ -4,8 +4,6 @@ export default async function handler(req, res) {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayFormatted = yesterday.toISOString().split("T")[0]; // Format: YYYY-MM-DD
-  const { date = "2025-02-21", dayRange = 1 } = req.query;
-
   try {
     const response = await axios.get(
       `https://firms.modaps.eosdis.nasa.gov/usfs/api/area/csv/86826bfcd41fb44eb1413d50232a1444/LANDSAT_NRT/world/1/${yesterdayFormatted}`
