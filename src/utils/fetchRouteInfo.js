@@ -10,7 +10,8 @@ export const fetchRouteInfo = async (
   destination,
   safeWaypoints,
   user,
-  firePolygons
+  firePolygons,
+  isDemoMode
 ) => {
   try {
     if (!user || !user.uid) {
@@ -28,8 +29,12 @@ export const fetchRouteInfo = async (
         ? userData.preferences.transportation
         : "driving";
 
-    // Use demo user coordinates if demo fire is True
-    const useDemo = localStorage.getItem("useDemoFire") === "true";
+    // Check for demo mode - first check the passed parameter, then try localStorage if available
+    let useDemo = isDemoMode;
+    if (useDemo === undefined && typeof window !== 'undefined' && window.localStorage) {
+      useDemo = localStorage.getItem("useDemoFire") === "true";
+    }
+    
     if (useDemo) {
       origin = DEMO_USER_COORDS;
     }

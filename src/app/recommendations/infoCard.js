@@ -6,6 +6,14 @@ import { fetchRouteInfo } from "@/utils/fetchRouteInfo";
 const InfoCard = ({ place, userLocation, geminiExplanation, user, onSetDestination }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [routeInfo, setRouteInfo] = useState({ eta: null, distance: null });
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  // Check for demo mode when component mounts
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      setIsDemoMode(localStorage.getItem("useDemoFire") === "true");
+    }
+  }, []);
 
   // Helper to get open/closed status
   const getLocationStatus = (place) => {
@@ -23,7 +31,9 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user, onSetDestinati
           { lat: userLocation.lat, lng: userLocation.lng },
           { lat: place.geometry.location.lat, lng: place.geometry.location.lng },
           null,
-          user
+          user,
+          null,
+          isDemoMode
         );
         setRouteInfo(data);
       } catch (error) {
@@ -32,7 +42,7 @@ const InfoCard = ({ place, userLocation, geminiExplanation, user, onSetDestinati
     };
 
     getRouteDetails();
-  }, [userLocation, place, user]);
+  }, [userLocation, place, user, isDemoMode]);
 
   return (
     <>
