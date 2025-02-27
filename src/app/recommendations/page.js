@@ -127,7 +127,7 @@ const RecommendationsPage = () => {
   }
 
   // Landsat data 340 miles within user coords
-  const thresholdDistanceKm = 340 * 1.609344; // km to miles
+  const thresholdDistanceKm = 250 * 1.609344; // km to miles
   useEffect(() => {
     // Fetch landsat data if valid coords exist
     if (!lat || !lng) return;
