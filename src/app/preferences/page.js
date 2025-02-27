@@ -127,7 +127,7 @@ export default function Preferences() {
                 onChange={(e) => setTransportation(e.target.value)}
               >
                 <option value="walking">Walking</option>
-                <option value="bicycle">Bicycle</option>
+                <option value="biking">Biking</option>
                 <option value="driving">Driving</option>
                 <option value="public">Public Transport</option>
               </select>

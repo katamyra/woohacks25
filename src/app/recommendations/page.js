@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { firestoreService } from "@/firebase/services/firestore";
 import { fetchRecommendations } from "@/utils/fetchRecommendations";
 import axios from "axios";
+import { DEMO_USER_COORDS } from "@/utils/demoFire";
 
 // Import Redux hooks and destination actions
 import { useDispatch } from "react-redux";
@@ -127,7 +128,8 @@ const RecommendationsPage = () => {
   }
 
   // Landsat data 200 miles within user coords
-  const thresholdDistanceKm = 200 * 1.609344; // ≈ 482.8 km
+  const thresholdDistanceKm = (250) * 1.609344;
+
   useEffect(() => {
     // Fetch landsat data if valid coords exist
     if (!lat || !lng) return;
@@ -143,14 +145,20 @@ const RecommendationsPage = () => {
           daynight: item.daynight,
           satellite: item.satellite,
         }));
+        console.log("Raw NASA Landsat Data: ", response.data.data)
+
+        const useDemo = localStorage.getItem("useDemoFire") === "true";
+        const originLat = useDemo ? DEMO_USER_COORDS.lat : lat;
+        const originLng = useDemo ? DEMO_USER_COORDS.lng : lng;
 
         const filteredData = data.filter((item) => {
           const distance = getDistanceFromLatLonInKm(
             item.lat,
             item.lng,
-            lat,
-            lng
+            originLat,
+            originLng
           );
+          console.log("Distance for:", item.lat, item.lng, "=>", distance, "km");
           return distance < thresholdDistanceKm;
         });
 

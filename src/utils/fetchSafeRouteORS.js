@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { DEMO_USER_COORDS } from "@/utils/demoFire";
 
 function getORSProfile(mode) {
   switch (mode.toLowerCase()) {
@@ -8,7 +9,7 @@ function getORSProfile(mode) {
       return 'foot-walking';
     case 'driving':
       return 'driving-car';
-    case 'bicycle':
+    case 'biking':
       return 'cycling-regular';
     default:
       throw new Error('Unsupported transportation mode');
@@ -18,9 +19,12 @@ function getORSProfile(mode) {
 export const fetchSafeRouteORS = async (origin, destinationCoord, firePolygonsCollection) => {
   try {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    const userLocation = JSON.parse(localStorage.getItem("userData")).address.coordinates;
+    let userLocation = JSON.parse(localStorage.getItem("userData")).address.coordinates;
+    if (localStorage.getItem("useDemoFire") === "true") {
+      userLocation = DEMO_USER_COORDS;
+    }
     const avoidPolygons = JSON.parse(localStorage.getItem("avoidPolygons"));
-    const transportation = storedUser?.transportation;
+    const transportation = storedUser?.transportation || 'driving';
     const orsProfile = getORSProfile(transportation);
     const orsApiKey = process.env.NEXT_PUBLIC_ORS_API_KEY;
 
@@ -37,7 +41,7 @@ export const fetchSafeRouteORS = async (origin, destinationCoord, firePolygonsCo
     const requestBody = {
       coordinates: [
         [userLocation.lng, userLocation.lat], // User's current coords
-        [destinationCoord.lng, destinationCoord.lat]    // Destination coords
+        [destinationCoord.lng, destinationCoord.lat] // Destination coords
       ],
       options: {
         avoid_polygons: avoidPolygons

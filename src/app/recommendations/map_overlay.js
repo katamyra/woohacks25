@@ -19,6 +19,8 @@ import { useAuth } from "@/context/AuthContext";
 import { fetchSafeRouteORS } from "@/utils/fetchSafeRouteORS";
 import { decodeORSGeometry } from "@/utils/decodeORSGeometry";
 import { useSelector } from "react-redux";
+import { getDemoFirePolygon } from "@/utils/demoFire";
+import { DEMO_USER_COORDS } from "@/utils/demoFire";
 import dynamic from "next/dynamic";
 import InfoPopup from "./infoPopup";
 
@@ -72,22 +74,19 @@ export default function MapOverlay({
   const [routeInfo, setRouteInfo] = useState(null);
   const [currentUserLocation, setCurrentUserLocation] = useState(null);
   const [directions, setDirections] = useState(null);
-  // New state: currently selected amenity (if any)
   const [selectedAmenity, setSelectedAmenity] = useState(null);
 
-  // Ref to store the route data layer
+  // Refs for route data layer, previous destination, and auto‑zoom flag
   const routeDataLayerRef = useRef(null);
-  // Ref to store the previous destination
   const prevDestinationRef = useRef(null);
-  // Ref for tracking auto‑zoom/auto‑center (flag)
   const hasAutoZoomed = useRef(false);
 
-  // Get the selected Destination coords from redux
+  // Get the selected destination coordinates from Redux
   const selectedDestinationCoord = useSelector(
     (state) => state.destination.destination
   );
 
-  // Reset the auto‑zoom/center flag when destination coords change
+  // Reset the auto‑zoom/center flag when destination coordinates change
   useEffect(() => {
     if (selectedDestinationCoord) {
       if (
@@ -105,18 +104,19 @@ export default function MapOverlay({
   // Fetch the input location from localStorage
   useEffect(() => {
     const storedUserData = localStorage.getItem("userData");
+    const useDemo = localStorage.getItem("useDemoFire") === "true";
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData);
       if (parsedData.address && parsedData.address.coordinates) {
-        setCurrentUserLocation(parsedData.address.coordinates);
+        setCurrentUserLocation(useDemo ? DEMO_USER_COORDS : parsedData.address.coordinates);
       } else {
         console.error(
-          "No address coordinates found in stored userData. Using default location."
+          "No address coordinates found in stored userData. Using Wooster default location."
         );
         setCurrentUserLocation({ lat: 40.8117, lng: -81.9308 });
       }
     } else {
-      console.error("No userData in localStorage. Using default location.");
+      console.error("No userData in localStorage. Using default Wooster location.");
       setCurrentUserLocation({ lat: 40.8117, lng: -81.9308 });
     }
   }, []);
@@ -131,7 +131,7 @@ export default function MapOverlay({
     }
   }, []);
 
-  // Log Landsat Data (fires) whenever it changes
+  // Log Landsat Data whenever it changes
   useEffect(() => {
     console.log("Landsat Data:", landsatData);
   }, [landsatData]);
@@ -149,7 +149,7 @@ export default function MapOverlay({
     }
   }, [map]);
 
-  // Centers the map based on landsat data OR the current user location
+  // Center the map based on Landsat data OR current user location
   const center = useMemo(() => {
     if (landsatData && landsatData.length > 0) {
       let sumLat = 0,
@@ -169,7 +169,7 @@ export default function MapOverlay({
     }
   }, [landsatData, currentUserLocation]);
 
-  // Fit the map bounds to the landsat data points
+  // Fit the map bounds to the Landsat data points
   useEffect(() => {
     if (map && landsatData && landsatData.length > 0 && window.google) {
       const bounds = new window.google.maps.LatLngBounds();
@@ -185,22 +185,46 @@ export default function MapOverlay({
     }
   }, [map, landsatData]);
 
-  // Create buffer polygon around fires for fire circumvention
-  const firePolygons = useMemo(() => {
+  // Build fire polygons with 1km radius
+  const landFirePolygons = useMemo(() => {
     return landsatData.map((dataPoint) => {
       const point = turf.point([dataPoint.lng, dataPoint.lat]);
       const polygon = turf.buffer(point, 1, { units: "kilometers" });
-      return polygon.geometry.coordinates;
+      return { coordinates: polygon.geometry.coordinates, isDemo: false };
     });
   }, [landsatData]);
 
-  // Construct GEOJSON from fire polygon
+  // Build demo fire polygon
+  const demoFirePolygon = useMemo(() => {
+    return { coordinates: getDemoFirePolygon(), isDemo: true };
+  }, []);
+
+  // Read demo flag from localstorage
+  const useDemoFire =
+    typeof window !== "undefined" &&
+    localStorage.getItem("useDemoFire") === "true";
+
+  // Merge red fires and blue demo fire polygons
+  const allFirePolygons = useMemo(() => {
+    if (useDemoFire) {
+      return [...landFirePolygons, demoFirePolygon];
+    } else {
+      return [...landFirePolygons];
+    }
+  }, [landFirePolygons, demoFirePolygon, useDemoFire]);
+
+  // Get fire polygon coords
+  const safeFirePolygons = useMemo(() => {
+    return allFirePolygons.map((poly) => poly.coordinates);
+  }, [allFirePolygons]);
+
+  // Construct GEOJSON from all fire polygons (if demo flag==True, include demo fire polygon)
   const avoidPolygons = useMemo(
     () => ({
       type: "MultiPolygon",
-      coordinates: firePolygons,
+      coordinates: allFirePolygons.map((p) => p.coordinates),
     }),
-    [firePolygons]
+    [allFirePolygons]
   );
 
   // Store avoidPolygons in localStorage
@@ -237,7 +261,7 @@ export default function MapOverlay({
     }
   }, [map, currentUserLocation, selectedDestinationCoord]);
 
-  // Fetch safe route data via ORS API and store the data layer
+  // Fetch safe route data via ORS API using safeFirePolygons
   useEffect(() => {
     if (
       selectedDestinationCoord &&
@@ -251,12 +275,12 @@ export default function MapOverlay({
           console.log("🚀 Starting safe route calculation...");
           console.log("📍 From:", currentUserLocation);
           console.log("🎯 To:", selectedDestinationCoord);
-          console.log("🔥 Fire polygons:", firePolygons?.length || 0);
+          console.log("🔥 Fire polygons:", safeFirePolygons?.length || 0);
 
           const routeData = await fetchSafeRouteORS(
             currentUserLocation,
             selectedDestinationCoord,
-            firePolygons
+            safeFirePolygons
           );
 
           console.log("✅ Route calculated successfully:", {
@@ -308,10 +332,10 @@ export default function MapOverlay({
     map,
     currentUserLocation,
     autoZoomAndCenter,
-    firePolygons,
+    safeFirePolygons,
   ]);
 
-  // Clear the route from the data layer when no destination is selected
+  // Clear route from data layer when no destination is selected
   useEffect(() => {
     if (!selectedDestinationCoord && routeDataLayerRef.current) {
       routeDataLayerRef.current.forEach((feature) =>
@@ -320,7 +344,7 @@ export default function MapOverlay({
     }
   }, [selectedDestinationCoord]);
 
-  // Toggle GEOJSON display on map
+  // Toggle GEOJSON display on map (for walkability overlay)
   const toggleGeoJson = async () => {
     if (!map) return;
     if (overlayVisible) {
@@ -391,7 +415,7 @@ export default function MapOverlay({
     }
   };
 
-  // Common style objects for UI elements
+  // Common styles for UI controls
   const commonStyle = {
     background: isButtonHovered ? "rgb(235, 235, 235)" : "#fff",
     boxShadow: "0 0px 2px rgba(24, 24, 24, 0.3)",
@@ -470,14 +494,14 @@ export default function MapOverlay({
               />
             ))}
           {/* Render polygons for each fire area */}
-          {firePolygons.map((poly, idx) => (
+          {allFirePolygons.map((item, idx) => (
             <Polygon
               key={idx}
-              paths={poly[0].map(([lng, lat]) => ({ lat, lng }))}
+              paths={item.coordinates[0].map(([lng, lat]) => ({ lat, lng }))}
               options={{
-                fillColor: "red",
+                fillColor: item.isDemo ? "blue" : "red",
                 fillOpacity: 0.35,
-                strokeColor: "red",
+                strokeColor: item.isDemo ? "blue" : "red",
                 strokeOpacity: 0.8,
                 strokeWeight: 2,
               }}

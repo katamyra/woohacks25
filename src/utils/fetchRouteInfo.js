@@ -1,8 +1,7 @@
-// In utils/fetchRouteInfo.js
-
 import axios from "axios";
 import { firestoreService } from "@/firebase/services/firestore";
 import * as turf from "@turf/turf";
+import { DEMO_USER_COORDS } from "@/utils/demoFire";
 
 export const fetchRouteInfo = async (
   origin,
@@ -26,6 +25,12 @@ export const fetchRouteInfo = async (
       userData.preferences && userData.preferences.transportation
         ? userData.preferences.transportation
         : "driving";
+
+    // Use demo user coordinates if demo fire is True
+    const useDemo = localStorage.getItem("useDemoFire") === "true";
+    if (useDemo) {
+      origin = DEMO_USER_COORDS;
+    }
 
     const getTravelMode = (preference) => {
       switch (preference) {

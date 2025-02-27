@@ -41,7 +41,7 @@ export default function Review() {
     setError('');
 
     try {
-      const prompt = `Based on the following user preferences, provide a brief review of their conditions:
+      const prompt = `Based on the following user preferences, provide a brief review of their conditions. The review should name all of the components of user data:
         - Transportation: ${preferences.transportation}
         - Fitness Level: ${preferences.fitnessLevel}
         - Max Distance: ${preferences.maxDistance} miles
