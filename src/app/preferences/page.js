@@ -9,7 +9,7 @@ export default function Preferences() {
   const { user } = useAuth();
   const router = useRouter();
   const [transportation, setTransportation] = useState('walking');
-  const [fitnessLevel, setFitnessLevel] = useState('regular');
+  const [fitnessLevel, setFitnessLevel] = useState('Regular');
   const [needs, setNeeds] = useState({
     food: false,
     shelter: false,
@@ -18,7 +18,6 @@ export default function Preferences() {
   });
 
   const [householdInfo, setHouseholdInfo] = useState({
-    totalMembers: 1,
     infants: 0,
     children: 0,
     adults: 1,
@@ -29,13 +28,6 @@ export default function Preferences() {
   const [medicalNeeds, setMedicalNeeds] = useState('');
 
   const [maxDistance, setMaxDistance] = useState(5); // in miles
-
-  const [communicationPrefs, setCommunicationPrefs] = useState({
-    phone: false,
-    email: false,
-    text: false,
-    language: 'english'
-  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -58,6 +50,10 @@ export default function Preferences() {
     setMedicalNeeds(event.target.value);
   };
 
+  const handleFitnessLevelChange = (event) => {
+    setFitnessLevel(event.target.value);
+  };
+
   const handleSubmit = async () => {
     if (!user) {
       setErrorMessage('You must be logged in to save preferences');
@@ -76,7 +72,6 @@ export default function Preferences() {
           householdInfo,
           medicalNeeds,
           maxDistance,
-          communicationPrefs
         }
       });
       const existingUser = JSON.parse(localStorage.getItem('user')) || {};
@@ -194,6 +189,20 @@ export default function Preferences() {
                 onChange={handleMedicalNeedsChange}
                 placeholder="Please describe any medical conditions, medications, mobility issues, or special dietary needs..."
               />
+              <div className="mt-4">
+                <label className="label">
+                  <span className="label-text text-gray-300">Physical Strength</span>
+                </label>
+                <select
+                  className="select select-bordered w-full bg-gray-700 text-gray-100 border-gray-600"
+                  value={fitnessLevel}
+                  onChange={handleFitnessLevelChange}
+                >
+                  <option value="Weak">Weak</option>
+                  <option value="Regular">Regular</option>
+                  <option value="Strong">Strong</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
